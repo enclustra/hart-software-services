@@ -1,11 +1,11 @@
   <mss xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="mpfs_hw_description.xsd">
     <design_information>
-      <libero_version>2021.2</libero_version>
-      <design_name>ICICLE_MSS</design_name>
+      <libero_version>2022.1</libero_version>
+      <design_name>MPFS250T_ES</design_name>
       <mpfs_part_no>MPFS250T_ES</mpfs_part_no>
-      <mpfs_package>FCVG484</mpfs_package>
-      <creation_date_time>10-21-2021_14:49:05</creation_date_time>
-      <xml_format_version>0.5.6</xml_format_version>
+      <mpfs_package>FCG1152</mpfs_package>
+      <creation_date_time>06-17-2022_14:45:05</creation_date_time>
+      <xml_format_version>0.5.9</xml_format_version>
     </design_information>
     <mss_memory_map>
       <map>
@@ -34,7 +34,7 @@
             <field Type="RW" name="PMP" offset="0" width="0">0x0</field>
             <field Type="RW" name="MPU" offset="1" width="0">0x0</field>
           </register>
-          <register address="0x00000008" description="AMP Mode peripheral mapping register.  When the register bit is '0' the peripheral is mapped into the 0x2000000 address range using AXI bus 5 from the Coreplex. When the register bit is '1' the peripheral is mapped into the 0x28000000 address range using AXI bus 6 from the Coreplex." name="APBBUS_CR">
+          <register address="0x00000008" description="AMP Mode peripheral mapping register.  When the register bit is '0' the peripheral is mapped into the 0x2000_0000 address range using AXI bus 5 from the Coreplex. When the register bit is '1' the peripheral is mapped into the 0x2800_0000 address range using AXI bus 6 from the Coreplex." name="APBBUS_CR">
             <field Type="RW" name="MMUART0" offset="0" width="1">0x0</field>
             <field Type="RW" name="MMUART1" offset="1" width="1">0x0</field>
             <field Type="RW" name="MMUART2" offset="2" width="1">0x0</field>
@@ -145,7 +145,7 @@
       <cache>
         <registers>
           <register address="0x00000008" description="Way indexes less than or equal to this register value  may be used by the cache. E.g. set to 0x7, will allocate 8 cache ways, 0-7 to cache, and leave 8-15 as LIM. Note 1: Way 0 is always allocated as cache. Note 2: each way is 128KB." name="WAY_ENABLE">
-            <field Type="RW" name="WAY_ENABLE" offset="0" width="8">0xB</field>
+            <field Type="RW" name="WAY_ENABLE" offset="0" width="8">0x7</field>
           </register>
           <register address="0x00000008" description="Way mask register master DMA. Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_DMA">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
@@ -160,12 +160,12 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
-          <register address="0x00000016" description="Way mask register master DMA. Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_AXI4_PORT_0">
+          <register address="0x00000016" description="Way mask registerAXI slave port 0.  Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_AXI4_PORT_0">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_1" offset="1" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_2" offset="2" width="1">0x1</field>
@@ -178,12 +178,12 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
-          <register address="0x00000024" description="Way mask register master DMA. Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_AXI4_PORT_1">
+          <register address="0x00000024" description="Way mask registerAXI slave port 1. Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_AXI4_PORT_1">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_1" offset="1" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_2" offset="2" width="1">0x1</field>
@@ -196,10 +196,10 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
           <register address="0x00000032" description="Way mask registerAXI slave port 2. Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_AXI4_PORT_2">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
@@ -214,12 +214,12 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
-          <register address="0x00000040" description="Way mask register AXI slave port 3. Set field to 1 to disable way from this master. Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_AXI4_PORT_3">
+          <register address="0x00000040" description="Way mask register AXI slave port 3.Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_AXI4_PORT_3">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_1" offset="1" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_2" offset="2" width="1">0x1</field>
@@ -232,12 +232,12 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
-          <register address="0x00000048" description="Way mask register E51 data cache  (hart0). Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_E51_DCACHE">
+          <register address="0x00000048" description="Way mask register for E51 data cache  (hart0). Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_E51_DCACHE">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_1" offset="1" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_2" offset="2" width="1">0x1</field>
@@ -250,12 +250,12 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
-          <register address="0x00000056" description="Way mask registerE52 instruction cache  (hart0). Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_E51_ICACHE">
+          <register address="0x00000056" description="Way mask register for E51 instruction cache  (hart0). Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_E51_ICACHE">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_1" offset="1" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_2" offset="2" width="1">0x1</field>
@@ -268,10 +268,10 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
           <register address="0x00000064" description="Way mask register data cache  (hart1). Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_U54_1_DCACHE">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
@@ -286,10 +286,10 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
           <register address="0x00000072" description="Way mask register instruction cache  (hart1). Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_U54_1_ICACHE">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
@@ -304,10 +304,10 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
           <register address="0x00000080" description="Way mask register data cache  (hart2). Set field to 1 to disable way from this master. Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_U54_2_DCACHE">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
@@ -322,10 +322,10 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
           <register address="0x00000088" description="Way mask register instruction cache  (hart2). Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_U54_2_ICACHE">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
@@ -340,12 +340,12 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
-          <register address="0x00000096" description="Way mask register data cache  (hart3). Set field to 1 to disable way from this master.Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_U54_3_DCACHE">
+          <register address="0x00000096" description="Way mask register data cache  (hart3). Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_U54_3_DCACHE">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_1" offset="1" width="1">0x1</field>
             <field Type="RW" name="WAY_MASK_2" offset="2" width="1">0x1</field>
@@ -358,10 +358,10 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
           <register address="0x00000104" description="Way mask register  instruction cache(hart3). Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_U54_3_ICACHE">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
@@ -376,10 +376,10 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
           <register address="0x00000112" description="Way mask register data cache  (hart4). Set field to 1 to disable way from this master. Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_U54_4_DCACHE">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
@@ -394,10 +394,10 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
           <register address="0x00000120" description="Way mask register instruction cache  (hart4). Set field to zero to disable way from this master. The available cache ways are 0 to number set in WAY_ENABLE register. If using scratch pad memory, the ways you want reserved for scrathpad are not available for selection, you must set to 0.  e.g. If three ways reserved for scratchpad, WAY_MASK_0, WAY_MASK_1 and WAY_MASK_2 will be set to zero for all masters, so they can not evict the way. " name="WAY_MASK_U54_4_ICACHE">
             <field Type="RW" name="WAY_MASK_0" offset="0" width="1">0x1</field>
@@ -412,13 +412,13 @@
             <field Type="RW" name="WAY_MASK_9" offset="9" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_10" offset="10" width="1">0x0</field>
             <field Type="RW" name="WAY_MASK_11" offset="11" width="1">0x0</field>
-            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x1</field>
-            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x1</field>
+            <field Type="RW" name="WAY_MASK_12" offset="12" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_13" offset="13" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_14" offset="14" width="1">0x0</field>
+            <field Type="RW" name="WAY_MASK_15" offset="15" width="1">0x0</field>
           </register>
           <register address="0x00000136" description="Number of  ways reserved for scratchpad. Note 1: This is not a register Note 2: each way is 128KB. Note 3: Embedded software expects cache ways allocated for scratchpad start at way 0, and work up." name="NUM_SCRATCH_PAD_WAYS">
-            <field Type="RW" name="NUM_OF_WAYS" offset="0" width="8">0x4</field>
+            <field Type="RW" name="NUM_OF_WAYS" offset="0" width="8">0x0</field>
           </register>
         </registers>
       </cache>
@@ -1237,14 +1237,14 @@
             <field Type="RW" name="SPI1_FABRIC" offset="1" width="1">0x0</field>
             <field Type="RW" name="I2C0_FABRIC" offset="2" width="1">0x1</field>
             <field Type="RW" name="I2C1_FABRIC" offset="3" width="1">0x1</field>
-            <field Type="RW" name="CAN0_FABRIC" offset="4" width="1">0x1</field>
+            <field Type="RW" name="CAN0_FABRIC" offset="4" width="1">0x0</field>
             <field Type="RW" name="CAN1_FABRIC" offset="5" width="1">0x0</field>
             <field Type="RW" name="QSPI_FABRIC" offset="6" width="1">0x0</field>
             <field Type="RW" name="MMUART0_FABRIC" offset="7" width="1">0x1</field>
             <field Type="RW" name="MMUART1_FABRIC" offset="8" width="1">0x1</field>
-            <field Type="RW" name="MMUART2_FABRIC" offset="9" width="1">0x1</field>
-            <field Type="RW" name="MMUART3_FABRIC" offset="10" width="1">0x1</field>
-            <field Type="RW" name="MMUART4_FABRIC" offset="11" width="1">0x1</field>
+            <field Type="RW" name="MMUART2_FABRIC" offset="9" width="1">0x0</field>
+            <field Type="RW" name="MMUART3_FABRIC" offset="10" width="1">0x0</field>
+            <field Type="RW" name="MMUART4_FABRIC" offset="11" width="1">0x0</field>
             <field Type="RW" name="MDIO0_FABRIC" offset="12" width="1">0x0</field>
             <field Type="RW" name="MDIO1_FABRIC" offset="13" width="1">0x0</field>
           </register>
@@ -1256,15 +1256,15 @@
             <field Type="RW" name="PAD4" offset="16" width="4">0x0</field>
             <field Type="RW" name="PAD5" offset="20" width="4">0x0</field>
             <field Type="RW" name="PAD6" offset="24" width="4">0x0</field>
-            <field Type="RW" name="PAD7" offset="28" width="4">0x0</field>
+            <field Type="RW" name="PAD7" offset="28" width="4">0xF</field>
           </register>
           <register address="0x00000208" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="IOMUX2_CR">
-            <field Type="RW" name="PAD8" offset="0" width="4">0x0</field>
-            <field Type="RW" name="PAD9" offset="4" width="4">0x0</field>
-            <field Type="RW" name="PAD10" offset="8" width="4">0x0</field>
-            <field Type="RW" name="PAD11" offset="12" width="4">0x0</field>
-            <field Type="RW" name="PAD12" offset="16" width="4">0x0</field>
-            <field Type="RW" name="PAD13" offset="20" width="4">0x0</field>
+            <field Type="RW" name="PAD8" offset="0" width="4">0xF</field>
+            <field Type="RW" name="PAD9" offset="4" width="4">0xF</field>
+            <field Type="RW" name="PAD10" offset="8" width="4">0xF</field>
+            <field Type="RW" name="PAD11" offset="12" width="4">0xF</field>
+            <field Type="RW" name="PAD12" offset="16" width="4">0xB</field>
+            <field Type="RW" name="PAD13" offset="20" width="4">0xB</field>
           </register>
           <register address="0x0000020C" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="IOMUX3_CR">
             <field Type="RW" name="PAD14" offset="0" width="4">0x4</field>
@@ -1291,17 +1291,17 @@
             <field Type="RW" name="PAD31" offset="4" width="4">0x2</field>
             <field Type="RW" name="PAD32" offset="8" width="4">0x2</field>
             <field Type="RW" name="PAD33" offset="12" width="4">0x2</field>
-            <field Type="RW" name="PAD34" offset="16" width="4">0x7</field>
-            <field Type="RW" name="PAD35" offset="20" width="4">0x7</field>
-            <field Type="RW" name="PAD36" offset="24" width="4">0x7</field>
-            <field Type="RW" name="PAD37" offset="28" width="4">0xF</field>
+            <field Type="RW" name="PAD34" offset="16" width="4">0x2</field>
+            <field Type="RW" name="PAD35" offset="20" width="4">0x2</field>
+            <field Type="RW" name="PAD36" offset="24" width="4">0xB</field>
+            <field Type="RW" name="PAD37" offset="28" width="4">0xB</field>
           </register>
           <register address="0x00000218" description="Sets whether the MMC/SD Voltage select lines are inverted on entry to the IOMUX structure" name="IOMUX6_CR">
-            <field Type="RW" name="VLT_SEL" offset="0" width="1">0x1</field>
+            <field Type="RW" name="VLT_SEL" offset="0" width="1">0x0</field>
             <field Type="RW" name="VLT_EN" offset="1" width="1">0x0</field>
-            <field Type="RW" name="VLT_CMD_DIR" offset="2" width="1">0x1</field>
-            <field Type="RW" name="VLT_DIR_0" offset="3" width="1">0x1</field>
-            <field Type="RW" name="VLT_DIR_1_3" offset="4" width="1">0x1</field>
+            <field Type="RW" name="VLT_CMD_DIR" offset="2" width="1">0x0</field>
+            <field Type="RW" name="VLT_DIR_0" offset="3" width="1">0x0</field>
+            <field Type="RW" name="VLT_DIR_1_3" offset="4" width="1">0x0</field>
             <field Type="RW" name="SD_LED" offset="5" width="1">0x0</field>
             <field Type="RW" name="SD_VOLT_0" offset="6" width="1">0x0</field>
             <field Type="RW" name="SD_VOLT_1" offset="7" width="1">0x0</field>
@@ -1316,7 +1316,7 @@
             <field Type="RW" name="RESERVED2" offset="20" width="12">0x0</field>
           </register>
           <register address="0x00000234" description="IO electrical configuration for MSSIO pad" name="MSSIO_BANK4_IO_CFG_0_1_CR">
-            <field Type="RW" name="IO_CFG_0" offset="0" width="16">0x0928</field>
+            <field Type="RW" name="IO_CFG_0" offset="0" width="16">0x0128</field>
             <field Type="RW" name="IO_CFG_1" offset="16" width="16">0x0928</field>
           </register>
           <register address="0x00000238" description="IO electrical configuration for MSSIO pad" name="MSSIO_BANK4_IO_CFG_2_3_CR">
@@ -1352,7 +1352,7 @@
             <field Type="RW" name="RESERVED2" offset="20" width="12">0x0</field>
           </register>
           <register address="0x00000254" description="IO electrical configuration for MSSIO pad" name="MSSIO_BANK2_IO_CFG_0_1_CR">
-            <field Type="RW" name="IO_CFG_0" offset="0" width="16">0x0829</field>
+            <field Type="RW" name="IO_CFG_0" offset="0" width="16">0x0029</field>
             <field Type="RW" name="IO_CFG_1" offset="16" width="16">0x0829</field>
           </register>
           <register address="0x00000258" description="IO electrical configuration for MSSIO pad" name="MSSIO_BANK2_IO_CFG_2_3_CR">
@@ -1449,14 +1449,14 @@
             <field Type="RW" name="SPI1_FABRIC" offset="1" width="1">0x0</field>
             <field Type="RW" name="I2C0_FABRIC" offset="2" width="1">0x1</field>
             <field Type="RW" name="I2C1_FABRIC" offset="3" width="1">0x1</field>
-            <field Type="RW" name="CAN0_FABRIC" offset="4" width="1">0x1</field>
+            <field Type="RW" name="CAN0_FABRIC" offset="4" width="1">0x0</field>
             <field Type="RW" name="CAN1_FABRIC" offset="5" width="1">0x0</field>
             <field Type="RW" name="QSPI_FABRIC" offset="6" width="1">0x0</field>
             <field Type="RW" name="MMUART0_FABRIC" offset="7" width="1">0x1</field>
             <field Type="RW" name="MMUART1_FABRIC" offset="8" width="1">0x1</field>
-            <field Type="RW" name="MMUART2_FABRIC" offset="9" width="1">0x1</field>
-            <field Type="RW" name="MMUART3_FABRIC" offset="10" width="1">0x1</field>
-            <field Type="RW" name="MMUART4_FABRIC" offset="11" width="1">0x1</field>
+            <field Type="RW" name="MMUART2_FABRIC" offset="9" width="1">0x0</field>
+            <field Type="RW" name="MMUART3_FABRIC" offset="10" width="1">0x0</field>
+            <field Type="RW" name="MMUART4_FABRIC" offset="11" width="1">0x0</field>
             <field Type="RW" name="MDIO0_FABRIC" offset="12" width="1">0x0</field>
             <field Type="RW" name="MDIO1_FABRIC" offset="13" width="1">0x0</field>
           </register>
@@ -1475,8 +1475,8 @@
             <field Type="RW" name="PAD9" offset="4" width="4">0x1</field>
             <field Type="RW" name="PAD10" offset="8" width="4">0x1</field>
             <field Type="RW" name="PAD11" offset="12" width="4">0x1</field>
-            <field Type="RW" name="PAD12" offset="16" width="4">0xF</field>
-            <field Type="RW" name="PAD13" offset="20" width="4">0xF</field>
+            <field Type="RW" name="PAD12" offset="16" width="4">0xB</field>
+            <field Type="RW" name="PAD13" offset="20" width="4">0xB</field>
           </register>
           <register address="0x0000020C" description="Configures the IO Mux structure for each IO pad.  0  implies  SD/SDIO, 1 implies  EMMC, 2 implies QSPI, 3 implies SPI,4 implies USB,5 implies MMUART,6 implies I2C,7 implies CAN,8 implies MDIO,9 implies Miscellaneous,0xA implies Reserved (Equivalent to Tristate),0xB implies GPIO ,0xC implies Fabric-test,0xD implies Logic 0,0xE implies Logic 1, 0xF implies Tristate" name="ALT_IOMUX3_CR">
             <field Type="RW" name="PAD14" offset="0" width="4">0x4</field>
@@ -1503,10 +1503,10 @@
             <field Type="RW" name="PAD31" offset="4" width="4">0x2</field>
             <field Type="RW" name="PAD32" offset="8" width="4">0x2</field>
             <field Type="RW" name="PAD33" offset="12" width="4">0x2</field>
-            <field Type="RW" name="PAD34" offset="16" width="4">0x7</field>
-            <field Type="RW" name="PAD35" offset="20" width="4">0x7</field>
-            <field Type="RW" name="PAD36" offset="24" width="4">0x7</field>
-            <field Type="RW" name="PAD37" offset="28" width="4">0xF</field>
+            <field Type="RW" name="PAD34" offset="16" width="4">0x2</field>
+            <field Type="RW" name="PAD35" offset="20" width="4">0x2</field>
+            <field Type="RW" name="PAD36" offset="24" width="4">0xB</field>
+            <field Type="RW" name="PAD37" offset="28" width="4">0xB</field>
           </register>
           <register address="0x00000218" description="Sets whether the MMC/SD Voltage select lines are inverted on entry to the IOMUX structure" name="ALT_IOMUX6_CR">
             <field Type="RW" name="VLT_SEL" offset="0" width="1">0x0</field>
@@ -1564,7 +1564,7 @@
             <field Type="RW" name="RESERVED2" offset="20" width="12">0x0</field>
           </register>
           <register address="0x00000254" description="IO electrical configuration for MSSIO pad" name="ALT_MSSIO_BANK2_IO_CFG_0_1_CR">
-            <field Type="RW" name="IO_CFG_0" offset="0" width="16">0x0829</field>
+            <field Type="RW" name="IO_CFG_0" offset="0" width="16">0x0029</field>
             <field Type="RW" name="IO_CFG_1" offset="16" width="16">0x0829</field>
           </register>
           <register address="0x00000258" description="IO electrical configuration for MSSIO pad" name="ALT_MSSIO_BANK2_IO_CFG_2_3_CR">
@@ -1846,11 +1846,11 @@
             <field Type="RW" name="SKIP_DQ_DQS_OPT_TIP_TRAINING" offset="4" width="1">0x0</field>
           </register>
           <register address="C" description="Tip config: default: 0x2,0x4,0x0,0x1F,0x1F" name="TIP_CFG_PARAMS">
-            <field Type="RW" name="ADDCMD_OFFSET" offset="0" width="3">0x2</field>
-            <field Type="RW" name="BCKLSCLK_OFFSET" offset="3" width="3">0x5</field>
+            <field Type="RW" name="ADDCMD_OFFSET" offset="0" width="3">0x3</field>
+            <field Type="RW" name="BCKLSCLK_OFFSET" offset="3" width="3">0x0</field>
             <field Type="RW" name="WRCALIB_WRITE_COUNT" offset="6" width="7"> 0x0</field>
-            <field Type="RW" name="READ_GATE_MIN_READS" offset="13" width="8">0x7F</field>
-            <field Type="RW" name="ADDRCMD_WAIT_COUNT" offset="22" width="8"> 0x1F</field>
+            <field Type="RW" name="READ_GATE_MIN_READS" offset="13" width="9">0x7F</field>
+            <field Type="RW" name="ADDRCMD_WAIT_COUNT" offset="22" width="9"> 0x1F</field>
           </register>
           <register address="10" description="in simulation we need to set this to 2, for hardware it will be dependent on the trace lengths" name="TIP_CONFIG_PARAMS_BCLK_VCOPHS_OFFSET">
             <field Type="RW" name="TIP_CONFIG_PARAMS_BCLK_VCOPHS" offset="0" width="32">0x02</field>
@@ -1860,20 +1860,20 @@
       <io_bank>
         <registers>
           <register address="0x00000004" description="DPC Bits Register" name="DPC_BITS">
-            <field Type="RW" name="DPC_VS" offset="0" width="4">0x2</field>
-            <field Type="RW" name="DPC_VRGEN_H" offset="4" width="6">0x2</field>
+            <field Type="RW" name="DPC_VS" offset="0" width="4">0x3</field>
+            <field Type="RW" name="DPC_VRGEN_H" offset="4" width="6">0x16</field>
             <field Type="RW" name="DPC_VRGEN_EN_H" offset="10" width="1">0x1</field>
             <field Type="RW" name="DPC_MOVE_EN_H" offset="11" width="1">0x0</field>
-            <field Type="RW" name="DPC_VRGEN_V" offset="12" width="6">0xC</field>
+            <field Type="RW" name="DPC_VRGEN_V" offset="12" width="6">0xE</field>
             <field Type="RW" name="DPC_VRGEN_EN_V" offset="18" width="1">0x1</field>
             <field Type="RW" name="DPC_MOVE_EN_V" offset="19" width="1">0x0</field>
             <field Type="RSVD" name="RESERVE01" offset="20" width="12">0x0</field>
           </register>
           <register address="0x00000008" description="Need to be set by software in all modes but OFF mode. Decoding options should follow ODT_STR table, depends on drive STR setting" name="RPC_ODT_DQ">
-            <field Type="RW" name="RPC_ODT_DQ" offset="0" width="32">0x6</field>
+            <field Type="RW" name="RPC_ODT_DQ" offset="0" width="32">0x2</field>
           </register>
           <register address="0x00000012" description="Need to be set by software in all modes but OFF mode. Decoding options should follow ODT_STR table, depends on drive STR setting" name="RPC_ODT_DQS">
-            <field Type="RW" name="RPC_ODT_DQS" offset="0" width="32">0x6</field>
+            <field Type="RW" name="RPC_ODT_DQS" offset="0" width="32">0x2</field>
           </register>
           <register address="0x00000016" description="Need to be set by software in all modes but OFF mode. Decoding options should follow ODT_STR table, depends on drive STR setting" name="RPC_ODT_ADDCMD">
             <field Type="RW" name="RPC_ODT_ADDCMD" offset="0" width="32">0x2</field>
@@ -1882,10 +1882,10 @@
             <field Type="RW" name="RPC_ODT_CLK" offset="0" width="32">0x2</field>
           </register>
           <register address="0x00000024" description="0x2000 73A8  (rpc10_ODT)" name="RPC_ODT_STATIC_DQ">
-            <field Type="RW" name="RPC_ODT_STATIC_DQ" offset="0" width="32">0x5</field>
+            <field Type="RW" name="RPC_ODT_STATIC_DQ" offset="0" width="32">0x6</field>
           </register>
           <register address="0x00000028" description="0x2000 73AC   (rpc11_ODT)" name="RPC_ODT_STATIC_DQS">
-            <field Type="RW" name="RPC_ODT_STATIC_DQS" offset="0" width="32">0x5</field>
+            <field Type="RW" name="RPC_ODT_STATIC_DQS" offset="0" width="32">0x6</field>
           </register>
           <register address="0x00000032" description="0x2000 739C  (rpc7_ODT)" name="RPC_ODT_STATIC_ADDCMD">
             <field Type="RW" name="RPC_ODT_STATIC_ADDCMD" offset="0" width="32">0x7</field>
@@ -1909,7 +1909,7 @@
             <field Type="RW" name="RPC_IBUFMD_DQS" offset="0" width="32">0x4</field>
           </register>
           <register address="0x00000060" description="bits 15:14 connect to pc_ibufmx DQ/DQS/DM bits 13:12 connect to pc_ibufmx CA/CK Check at ioa pc bit" name="RPC_SPARE0_DQ">
-            <field Type="RW" name="RPC_SPARE0_DQ" offset="0" width="32">0x8000</field>
+            <field Type="RW" name="RPC_SPARE0_DQ" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00000064" description="Overrides the I/O, used to disable specific DDR I/0. Each bit corresponding to an IO in corresponding IOG lane, starting from p_pair0 to n_pair5." name="RPC_EN_ADDCMD0_OVRT9">
             <field Type="RW" name="MSS_DDR_CK0" offset="0" width="1">0x0</field>
@@ -1920,36 +1920,36 @@
             <field Type="RW" name="MSS_DDR_A3" offset="5" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_A4" offset="6" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_A5" offset="7" width="1">0x0</field>
-            <field Type="RW" name="MSS_DDR_A6" offset="8" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_A7" offset="9" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_A8" offset="10" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_A9" offset="11" width="1">0x1</field>
+            <field Type="RW" name="MSS_DDR_A6" offset="8" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_A7" offset="9" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_A8" offset="10" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_A9" offset="11" width="1">0x0</field>
           </register>
           <register address="0x00000064" description="Overrides the I/O, used to disable specific DDR I/0. Each bit corresponding to an IO in corresponding IOG lane, starting from p_pair0 to n_pair5." name="RPC_EN_ADDCMD1_OVRT10">
             <field Type="RW" name="MSS_DDR_CK1" offset="0" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_CK_N1" offset="1" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_A10" offset="2" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_A11" offset="3" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_A12" offset="4" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_A13" offset="5" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_A14" offset="6" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_A15" offset="7" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_A16" offset="8" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR3_WE_N" offset="9" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_BA0" offset="10" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_BA1" offset="11" width="1">0x1</field>
+            <field Type="RW" name="MSS_DDR_A10" offset="2" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_A11" offset="3" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_A12" offset="4" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_A13" offset="5" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_A14" offset="6" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_A15" offset="7" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_A16" offset="8" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR3_WE_N" offset="9" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_BA0" offset="10" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_BA1" offset="11" width="1">0x0</field>
           </register>
           <register address="0x00000064" description="Overrides the I/O, used to disable specific DDR I/0. Each bit corresponding to an IO in corresponding IOG lane, starting from p_pair0 to n_pair5. " name="RPC_EN_ADDCMD2_OVRT11">
             <field Type="RW" name="MSS_DDR_RAM_RST_N" offset="0" width="1">0x0</field>
-            <field Type="RW" name="MSS_DDR_BG0" offset="1" width="1">0x1</field>
+            <field Type="RW" name="MSS_DDR_BG0" offset="1" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_BG1" offset="2" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_CS0" offset="3" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_CKE0" offset="4" width="1">0x0</field>
-            <field Type="RW" name="MSS_DDR_ODT0" offset="5" width="1">0x1</field>
+            <field Type="RW" name="MSS_DDR_ODT0" offset="5" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_CS1" offset="6" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_CKE1" offset="7" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_ODT1" offset="8" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_ACT_N" offset="9" width="1">0x1</field>
+            <field Type="RW" name="MSS_DDR_ACT_N" offset="9" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_PARITY" offset="10" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_ALERT_N" offset="11" width="1">0x1</field>
           </register>
@@ -1964,7 +1964,7 @@
             <field Type="RW" name="MSS_DDR_DQ5" offset="7" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_DQ6" offset="8" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_DQ7" offset="9" width="1">0x0</field>
-            <field Type="RW" name="MSS_DDR_DM0" offset="10" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_DM0" offset="10" width="1">0x1</field>
           </register>
           <register address="0x00000064" description="Overrides the I/O, used to disable specific DDR I/0. Each bit corresponding to an IO in corresponding IOG lane, starting from p_pair0 to n_pair5." name="RPC_EN_DATA1_OVRT13">
             <field Type="RW" name="MSS_DDR_DQ8" offset="0" width="1">0x0</field>
@@ -1977,7 +1977,7 @@
             <field Type="RW" name="MSS_DDR_DQ13" offset="7" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_DQ14" offset="8" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_DQ15" offset="9" width="1">0x0</field>
-            <field Type="RW" name="MSS_DDR_DM1" offset="10" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_DM1" offset="10" width="1">0x1</field>
           </register>
           <register address="0x00000064" description="Overrides the I/O, used to disable specific DDR I/0. Each bit corresponding to an IO in corresponding IOG lane, starting from p_pair0 to n_pair5." name="RPC_EN_DATA2_OVRT14">
             <field Type="RW" name="MSS_DDR_DQ16" offset="0" width="1">0x0</field>
@@ -1990,7 +1990,7 @@
             <field Type="RW" name="MSS_DDR_DQ21" offset="7" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_DQ22" offset="8" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_DQ23" offset="9" width="1">0x0</field>
-            <field Type="RW" name="MSS_DDR_DM2" offset="10" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_DM2" offset="10" width="1">0x1</field>
           </register>
           <register address="0x00000064" description="Overrides the I/O, used to disable specific DDR I/0. Each bit corresponding to an IO in corresponding IOG lane, starting from p_pair0 to n_pair5." name="RPC_EN_DATA3_OVRT15">
             <field Type="RW" name="MSS_DDR_DQ24" offset="0" width="1">0x0</field>
@@ -2003,15 +2003,15 @@
             <field Type="RW" name="MSS_DDR_DQ29" offset="7" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_DQ30" offset="8" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_DQ31" offset="9" width="1">0x0</field>
-            <field Type="RW" name="MSS_DDR_DM3" offset="10" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_DM3" offset="10" width="1">0x1</field>
           </register>
           <register address="0x00000064" description="Overrides the I/O, used to disable specific DDR I/0. Each bit corresponding to an IO in corresponding IOG lane, starting from p_pair0 to n_pair5." name="RPC_EN_ECC_OVRT16">
-            <field Type="RW" name="MSS_DDR_DQ32" offset="0" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_DQ33" offset="1" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_DQ34" offset="2" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_DQ35" offset="3" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_DQS_P4" offset="4" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_DQS_N4" offset="5" width="1">0x1</field>
+            <field Type="RW" name="MSS_DDR_DQ32" offset="0" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_DQ33" offset="1" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_DQ34" offset="2" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_DQ35" offset="3" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_DQS_P4" offset="4" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_DQS_N4" offset="5" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_DM4" offset="6" width="1">0x1</field>
           </register>
           <register address="0x00000064" description="Sets pull-downs when override enabled. Each bit corresponding to an IO in corresponding IOG lane, starting from p_pair0 to n_pair5." name="RPC235_WPD_ADD_CMD0">
@@ -2048,10 +2048,10 @@
             <field Type="RW" name="MSS_DDR_BG1" offset="2" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_CS0" offset="3" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_CKE0" offset="4" width="1">0x0</field>
-            <field Type="RW" name="MSS_DDR_ODT0" offset="5" width="1">0x1</field>
+            <field Type="RW" name="MSS_DDR_ODT0" offset="5" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_CS1" offset="6" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_CKE1" offset="7" width="1">0x0</field>
-            <field Type="RW" name="MSS_DDR_ODT1" offset="8" width="1">0x1</field>
+            <field Type="RW" name="MSS_DDR_ODT1" offset="8" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_ACT_N" offset="9" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_PARITY" offset="10" width="1">0x0</field>
             <field Type="RW" name="MSS_DDR_ALERT_N" offset="11" width="1">0x0</field>
@@ -2151,10 +2151,10 @@
             <field Type="RW" name="MSS_DDR_BG1" offset="2" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_CS0" offset="3" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_CKE0" offset="4" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_ODT0" offset="5" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_ODT0" offset="5" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_CS1" offset="6" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_CKE1" offset="7" width="1">0x1</field>
-            <field Type="RW" name="MSS_DDR_ODT1" offset="8" width="1">0x0</field>
+            <field Type="RW" name="MSS_DDR_ODT1" offset="8" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_ACT_N" offset="9" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_PARITY" offset="10" width="1">0x1</field>
             <field Type="RW" name="MSS_DDR_ALERT_N" offset="11" width="1">0x1</field>
@@ -2225,15 +2225,15 @@
       <mode>
         <registers>
           <register address="0x00000004" description="DDRPHY MODE (binary)- 000 ddr3, 001 ddr33L, 010 ddr4, 011 LPDDR3, 100 LPDDR4, 111 OFF_MODE" name="DDRPHY_MODE">
-            <field Type="RW" name="DDRMODE" offset="0" width="3">0x4</field>
-            <field Type="RW" name="ECC" offset="3" width="1">0x0</field>
+            <field Type="RW" name="DDRMODE" offset="0" width="3">0x2</field>
+            <field Type="RW" name="ECC" offset="3" width="1">0x1</field>
             <field Type="RW" name="CRC" offset="4" width="1">0x0</field>
             <field Type="RW" name="BUS_WIDTH" offset="5" width="3">0x1</field>
-            <field Type="RW" name="DMI_DBI" offset="8" width="1">0x1</field>
-            <field Type="RW" name="DQ_DRIVE" offset="9" width="2">0x1</field>
-            <field Type="RW" name="DQS_DRIVE" offset="11" width="2">0x1</field>
-            <field Type="RW" name="ADD_CMD_DRIVE" offset="13" width="2">0x2</field>
-            <field Type="RW" name="CLOCK_OUT_DRIVE" offset="15" width="2">0x2</field>
+            <field Type="RW" name="DMI_DBI" offset="8" width="1">0x0</field>
+            <field Type="RW" name="DQ_DRIVE" offset="9" width="2">0x0</field>
+            <field Type="RW" name="DQS_DRIVE" offset="11" width="2">0x0</field>
+            <field Type="RW" name="ADD_CMD_DRIVE" offset="13" width="2">0x1</field>
+            <field Type="RW" name="CLOCK_OUT_DRIVE" offset="15" width="2">0x0</field>
             <field Type="RW" name="DQ_TERMINATION" offset="17" width="2">0x0</field>
             <field Type="RW" name="DQS_TERMINATION" offset="19" width="2">0x0</field>
             <field Type="RW" name="ADD_CMD_INPUT_PIN_TERMINATION" offset="21" width="2">0x0</field>
@@ -2243,7 +2243,7 @@
             <field Type="RSVD" name="RESERVED" offset="27" width="5">0x0</field>
           </register>
           <register address="0x00000008" description="number of lanes used for data-  does not include ECC, infer from mode register" name="DATA_LANES_USED">
-            <field Type="RW" name="DATA_LANES" offset="0" width="3">0x4</field>
+            <field Type="RW" name="DATA_LANES" offset="0" width="3">0x5</field>
           </register>
         </registers>
       </mode>
@@ -2287,7 +2287,7 @@
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
           <register address="0x00000004" description="Cached access at 0x10_0000_000" name="SEG0_1">
-            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7030</field>
+            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7040</field>
             <field Type="RW" name="RESERVED" offset="15" width="16">0x0</field>
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
@@ -2332,7 +2332,7 @@
             <field Type="RW" name="LOCKED" offset="31" width="1">0x0</field>
           </register>
           <register address="0x00000008" description="Non-Cached access at 0x00_c000_0000" name="SEG1_2">
-            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7FB0</field>
+            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x0</field>
             <field Type="RW" name="RESERVED" offset="15" width="16">0x0</field>
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
@@ -2342,7 +2342,7 @@
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
           <register address="0x00000016" description="Non-Cached WCB access at 0x00_d000_0000" name="SEG1_4">
-            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7FA0</field>
+            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x0</field>
             <field Type="RW" name="RESERVED" offset="15" width="16">0x0</field>
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
@@ -2369,7 +2369,7 @@
             <field Type="RW" name="CFG_MANUAL_ADDRESS_MAP" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00002404" description="IP Blk = ADDR_MAP Access=RW " name="CFG_CHIPADDR_MAP">
-            <field Type="RW" name="CFG_CHIPADDR_MAP" offset="0" width="32">0x00001D</field>
+            <field Type="RW" name="CFG_CHIPADDR_MAP" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002408" description="IP Blk = ADDR_MAP Access=RW " name="CFG_CIDADDR_MAP">
             <field Type="RW" name="CFG_CIDADDR_MAP" offset="0" width="32">0x00000000</field>
@@ -2381,28 +2381,28 @@
             <field Type="RW" name="CFG_MB_AUTOPCH_COL_BIT_POS_HIGH" offset="0" width="32">0x0000000A</field>
           </register>
           <register address="0x00002414" description="IP Blk = ADDR_MAP Access=RW " name="CFG_BANKADDR_MAP_0">
-            <field Type="RW" name="CFG_BANKADDR_MAP_0" offset="0" width="32">0x00C2CA</field>
+            <field Type="RW" name="CFG_BANKADDR_MAP_0" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002418" description="IP Blk = ADDR_MAP Access=RW " name="CFG_BANKADDR_MAP_1">
             <field Type="RW" name="CFG_BANKADDR_MAP_1" offset="0" width="32">0x0</field>
           </register>
           <register address="0x0000241C" description="IP Blk = ADDR_MAP Access=RW " name="CFG_ROWADDR_MAP_0">
-            <field Type="RW" name="CFG_ROWADDR_MAP_0" offset="0" width="32">0x9140F38D</field>
+            <field Type="RW" name="CFG_ROWADDR_MAP_0" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002420" description="IP Blk = ADDR_MAP Access=RW " name="CFG_ROWADDR_MAP_1">
-            <field Type="RW" name="CFG_ROWADDR_MAP_1" offset="0" width="32">0x75955134</field>
+            <field Type="RW" name="CFG_ROWADDR_MAP_1" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002424" description="IP Blk = ADDR_MAP Access=RW " name="CFG_ROWADDR_MAP_2">
-            <field Type="RW" name="CFG_ROWADDR_MAP_2" offset="0" width="32">0x71B69961</field>
+            <field Type="RW" name="CFG_ROWADDR_MAP_2" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002428" description="IP Blk = ADDR_MAP Access=RW " name="CFG_ROWADDR_MAP_3">
-            <field Type="RW" name="CFG_ROWADDR_MAP_3" offset="0" width="32">0x000</field>
+            <field Type="RW" name="CFG_ROWADDR_MAP_3" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x0000242C" description="IP Blk = ADDR_MAP Access=RW " name="CFG_COLADDR_MAP_0">
-            <field Type="RW" name="CFG_COLADDR_MAP_0" offset="0" width="32">0x440C2040</field>
+            <field Type="RW" name="CFG_COLADDR_MAP_0" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002430" description="IP Blk = ADDR_MAP Access=RW " name="CFG_COLADDR_MAP_1">
-            <field Type="RW" name="CFG_COLADDR_MAP_1" offset="0" width="32">0x02481C61</field>
+            <field Type="RW" name="CFG_COLADDR_MAP_1" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002434" description="IP Blk = ADDR_MAP Access=RW " name="CFG_COLADDR_MAP_2">
             <field Type="RW" name="CFG_COLADDR_MAP_2" offset="0" width="32">0x00000000</field>
@@ -2420,28 +2420,28 @@
             <field Type="RW" name="CFG_THERMAL_OFFSET" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002810" description="IP Blk = MC_BASE3 Access=RW " name="CFG_SOC_ODT">
-            <field Type="RW" name="CFG_SOC_ODT" offset="0" width="32">0x6</field>
+            <field Type="RW" name="CFG_SOC_ODT" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002814" description="IP Blk = MC_BASE3 Access=RW " name="CFG_ODTE_CK">
-            <field Type="RW" name="CFG_ODTE_CK" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ODTE_CK" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002818" description="IP Blk = MC_BASE3 Access=RW " name="CFG_ODTE_CS">
-            <field Type="RW" name="CFG_ODTE_CS" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ODTE_CS" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x0000281C" description="IP Blk = MC_BASE3 Access=RW " name="CFG_ODTD_CA">
-            <field Type="RW" name="CFG_ODTD_CA" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ODTD_CA" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002820" description="IP Blk = MC_BASE3 Access=RW " name="CFG_LPDDR4_FSP_OP">
-            <field Type="RW" name="CFG_LPDDR4_FSP_OP" offset="0" width="32">0x1</field>
+            <field Type="RW" name="CFG_LPDDR4_FSP_OP" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00002824" description="IP Blk = MC_BASE3 Access=RW " name="CFG_GENERATE_REFRESH_ON_SRX">
             <field Type="RW" name="CFG_GENERATE_REFRESH_ON_SRX" offset="0" width="32">0x00000001</field>
           </register>
           <register address="0x00002828" description="IP Blk = MC_BASE3 Access=RW " name="CFG_DBI_CL">
-            <field Type="RW" name="CFG_DBI_CL" offset="0" width="32">0x00000016</field>
+            <field Type="RW" name="CFG_DBI_CL" offset="0" width="32">0xB</field>
           </register>
           <register address="0x0000282C" description="IP Blk = MC_BASE3 Access=RW " name="CFG_NON_DBI_CL">
-            <field Type="RW" name="CFG_NON_DBI_CL" offset="0" width="32">0x00000016</field>
+            <field Type="RW" name="CFG_NON_DBI_CL" offset="0" width="32">0xB</field>
           </register>
           <register address="0x00002830" description="IP Blk = MC_BASE3 Access=RW " name="INIT_FORCE_WRITE_DATA_0">
             <field Type="RW" name="INIT_FORCE_WRITE_DATA_0" offset="0" width="32">0x00000000</field>
@@ -2456,7 +2456,7 @@
             <field Type="RW" name="CFG_WR_CMD_LAT_CRC_DM" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00003C0C" description="IP Blk = MC_BASE1 Access=RW " name="CFG_FINE_GRAN_REF_MODE">
-            <field Type="RW" name="CFG_FINE_GRAN_REF_MODE" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_FINE_GRAN_REF_MODE" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003C10" description="IP Blk = MC_BASE1 Access=RW " name="CFG_TEMP_SENSOR_READOUT">
             <field Type="RW" name="CFG_TEMP_SENSOR_READOUT" offset="0" width="32">0x00000000</field>
@@ -2468,7 +2468,7 @@
             <field Type="RW" name="CFG_GEARDOWN_MODE" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00003C1C" description="IP Blk = MC_BASE1 Access=RW " name="CFG_WR_PREAMBLE">
-            <field Type="RW" name="CFG_WR_PREAMBLE" offset="0" width="32">0x1</field>
+            <field Type="RW" name="CFG_WR_PREAMBLE" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003C20" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RD_PREAMBLE">
             <field Type="RW" name="CFG_RD_PREAMBLE" offset="0" width="32">0x0</field>
@@ -2483,13 +2483,13 @@
             <field Type="RW" name="CFG_CS_TO_CMDADDR_LATENCY" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00003C30" description="IP Blk = MC_BASE1 Access=RW " name="CFG_INT_VREF_MON">
-            <field Type="RW" name="CFG_INT_VREF_MON" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_INT_VREF_MON" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003C34" description="IP Blk = MC_BASE1 Access=RW " name="CFG_TEMP_CTRL_REF_MODE">
-            <field Type="RW" name="CFG_TEMP_CTRL_REF_MODE" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_TEMP_CTRL_REF_MODE" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003C38" description="IP Blk = MC_BASE1 Access=RW " name="CFG_TEMP_CTRL_REF_RANGE">
-            <field Type="RW" name="CFG_TEMP_CTRL_REF_RANGE" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_TEMP_CTRL_REF_RANGE" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003C3C" description="IP Blk = MC_BASE1 Access=RW " name="CFG_MAX_PWR_DOWN_MODE">
             <field Type="RW" name="CFG_MAX_PWR_DOWN_MODE" offset="0" width="32">0x00000000</field>
@@ -2501,70 +2501,70 @@
             <field Type="RW" name="CFG_WRITE_DBI" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00003C48" description="IP Blk = MC_BASE1 Access=RW " name="CFG_DATA_MASK">
-            <field Type="RW" name="CFG_DATA_MASK" offset="0" width="32">0x1</field>
+            <field Type="RW" name="CFG_DATA_MASK" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003C4C" description="IP Blk = MC_BASE1 Access=RW " name="CFG_CA_PARITY_PERSIST_ERR">
             <field Type="RW" name="CFG_CA_PARITY_PERSIST_ERR" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00003C50" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RTT_PARK">
-            <field Type="RW" name="CFG_RTT_PARK" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_RTT_PARK" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003C54" description="IP Blk = MC_BASE1 Access=RW " name="CFG_ODT_INBUF_4_PD">
-            <field Type="RW" name="CFG_ODT_INBUF_4_PD" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_ODT_INBUF_4_PD" offset="0" width="32">0x1</field>
           </register>
           <register address="0x00003C58" description="IP Blk = MC_BASE1 Access=RW " name="CFG_CA_PARITY_ERR_STATUS">
-            <field Type="RW" name="CFG_CA_PARITY_ERR_STATUS" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_CA_PARITY_ERR_STATUS" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003C5C" description="IP Blk = MC_BASE1 Access=RW " name="CFG_CRC_ERROR_CLEAR">
             <field Type="RW" name="CFG_CRC_ERROR_CLEAR" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00003C60" description="IP Blk = MC_BASE1 Access=RW " name="CFG_CA_PARITY_LATENCY">
-            <field Type="RW" name="CFG_CA_PARITY_LATENCY" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_CA_PARITY_LATENCY" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003C64" description="IP Blk = MC_BASE1 Access=RW " name="CFG_CCD_S">
-            <field Type="RW" name="CFG_CCD_S" offset="0" width="32">0x00000005</field>
+            <field Type="RW" name="CFG_CCD_S" offset="0" width="32">0x4</field>
           </register>
           <register address="0x00003C68" description="IP Blk = MC_BASE1 Access=RW " name="CFG_CCD_L">
-            <field Type="RW" name="CFG_CCD_L" offset="0" width="32">0x00000006</field>
+            <field Type="RW" name="CFG_CCD_L" offset="0" width="32">0x5</field>
           </register>
           <register address="0x00003C6C" description="IP Blk = MC_BASE1 Access=RW " name="CFG_VREFDQ_TRN_ENABLE">
-            <field Type="RW" name="CFG_VREFDQ_TRN_ENABLE" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_VREFDQ_TRN_ENABLE" offset="0" width="32">0x1</field>
           </register>
           <register address="0x00003C70" description="IP Blk = MC_BASE1 Access=RW " name="CFG_VREFDQ_TRN_RANGE">
-            <field Type="RW" name="CFG_VREFDQ_TRN_RANGE" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_VREFDQ_TRN_RANGE" offset="0" width="32">0x1</field>
           </register>
           <register address="0x00003C74" description="IP Blk = MC_BASE1 Access=RW " name="CFG_VREFDQ_TRN_VALUE">
-            <field Type="RW" name="CFG_VREFDQ_TRN_VALUE" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_VREFDQ_TRN_VALUE" offset="0" width="32">0x1E</field>
           </register>
           <register address="0x00003C78" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RRD_S">
-            <field Type="RW" name="CFG_RRD_S" offset="0" width="32">0x00000004</field>
+            <field Type="RW" name="CFG_RRD_S" offset="0" width="32">0x5</field>
           </register>
           <register address="0x00003C7C" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RRD_L">
-            <field Type="RW" name="CFG_RRD_L" offset="0" width="32">0x00000003</field>
+            <field Type="RW" name="CFG_RRD_L" offset="0" width="32">0x6</field>
           </register>
           <register address="0x00003C80" description="IP Blk = MC_BASE1 Access=RW " name="CFG_WTR_S">
-            <field Type="RW" name="CFG_WTR_S" offset="0" width="32">0x00000003</field>
+            <field Type="RW" name="CFG_WTR_S" offset="0" width="32">0x2</field>
           </register>
           <register address="0x00003C84" description="IP Blk = MC_BASE1 Access=RW " name="CFG_WTR_L">
-            <field Type="RW" name="CFG_WTR_L" offset="0" width="32">0x00000003</field>
+            <field Type="RW" name="CFG_WTR_L" offset="0" width="32">0x6</field>
           </register>
           <register address="0x00003C88" description="IP Blk = MC_BASE1 Access=RW " name="CFG_WTR_S_CRC_DM">
-            <field Type="RW" name="CFG_WTR_S_CRC_DM" offset="0" width="32">0x00000003</field>
+            <field Type="RW" name="CFG_WTR_S_CRC_DM" offset="0" width="32">0x7</field>
           </register>
           <register address="0x00003C8C" description="IP Blk = MC_BASE1 Access=RW " name="CFG_WTR_L_CRC_DM">
-            <field Type="RW" name="CFG_WTR_L_CRC_DM" offset="0" width="32">0x00000003</field>
+            <field Type="RW" name="CFG_WTR_L_CRC_DM" offset="0" width="32">0xB</field>
           </register>
           <register address="0x00003C90" description="IP Blk = MC_BASE1 Access=RW " name="CFG_WR_CRC_DM">
-            <field Type="RW" name="CFG_WR_CRC_DM" offset="0" width="32">0x00000006</field>
+            <field Type="RW" name="CFG_WR_CRC_DM" offset="0" width="32">0x11</field>
           </register>
           <register address="0x00003C94" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RFC1">
-            <field Type="RW" name="CFG_RFC1" offset="0" width="32">0x00000036</field>
+            <field Type="RW" name="CFG_RFC1" offset="0" width="32">0x118</field>
           </register>
           <register address="0x00003C98" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RFC2">
-            <field Type="RW" name="CFG_RFC2" offset="0" width="32">0x00000036</field>
+            <field Type="RW" name="CFG_RFC2" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003C9C" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RFC4">
-            <field Type="RW" name="CFG_RFC4" offset="0" width="32">0x00000036</field>
+            <field Type="RW" name="CFG_RFC4" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003CC4" description="IP Blk = MC_BASE1 Access=RW " name="CFG_NIBBLE_DEVICES">
             <field Type="RW" name="CFG_NIBBLE_DEVICES" offset="0" width="32">0x0</field>
@@ -2669,19 +2669,19 @@
             <field Type="RW" name="CFG_NUM_LOGICAL_RANKS_PER_3DS" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00003D64" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RFC_DLR1">
-            <field Type="RW" name="CFG_RFC_DLR1" offset="0" width="32">0x00000048</field>
+            <field Type="RW" name="CFG_RFC_DLR1" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003D68" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RFC_DLR2">
-            <field Type="RW" name="CFG_RFC_DLR2" offset="0" width="32">0x0000002C</field>
+            <field Type="RW" name="CFG_RFC_DLR2" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003D6C" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RFC_DLR4">
-            <field Type="RW" name="CFG_RFC_DLR4" offset="0" width="32">0x00000020</field>
+            <field Type="RW" name="CFG_RFC_DLR4" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003D70" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RRD_DLR">
-            <field Type="RW" name="CFG_RRD_DLR" offset="0" width="32">0x00000004</field>
+            <field Type="RW" name="CFG_RRD_DLR" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003D74" description="IP Blk = MC_BASE1 Access=RW " name="CFG_FAW_DLR">
-            <field Type="RW" name="CFG_FAW_DLR" offset="0" width="32">0x00000010</field>
+            <field Type="RW" name="CFG_FAW_DLR" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00003D98" description="IP Blk = MC_BASE1 Access=RW " name="CFG_ADVANCE_ACTIVATE_READY">
             <field Type="RW" name="CFG_ADVANCE_ACTIVATE_READY" offset="0" width="32">0x00000000</field>
@@ -2720,7 +2720,7 @@
             <field Type="RW" name="INIT_ZQ_CAL_REQ" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00004034" description="IP Blk = MC_BASE2 Access=RW " name="CFG_BL">
-            <field Type="RW" name="CFG_BL" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_BL" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00004038" description="IP Blk = MC_BASE2 Access=RW " name="CTRLR_INIT">
             <field Type="RW" name="CTRLR_INIT" offset="0" width="32">0x00000000</field>
@@ -2729,67 +2729,67 @@
             <field Type="RW" name="CFG_AUTO_REF_EN" offset="0" width="32">0x1</field>
           </register>
           <register address="0x00004044" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RAS">
-            <field Type="RW" name="CFG_RAS" offset="0" width="32">0x22</field>
+            <field Type="RW" name="CFG_RAS" offset="0" width="32">0x1C</field>
           </register>
           <register address="0x00004048" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RCD">
-            <field Type="RW" name="CFG_RCD" offset="0" width="32">0xF</field>
+            <field Type="RW" name="CFG_RCD" offset="0" width="32">0xB</field>
           </register>
           <register address="0x0000404C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RRD">
-            <field Type="RW" name="CFG_RRD" offset="0" width="32">0x8</field>
+            <field Type="RW" name="CFG_RRD" offset="0" width="32">0x00000007</field>
           </register>
           <register address="0x00004050" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RP">
-            <field Type="RW" name="CFG_RP" offset="0" width="32">0x11</field>
+            <field Type="RW" name="CFG_RP" offset="0" width="32">0xB</field>
           </register>
           <register address="0x00004054" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RC">
-            <field Type="RW" name="CFG_RC" offset="0" width="32">0x33</field>
+            <field Type="RW" name="CFG_RC" offset="0" width="32">0x27</field>
           </register>
           <register address="0x00004058" description="IP Blk = MC_BASE2 Access=RW " name="CFG_FAW">
-            <field Type="RW" name="CFG_FAW" offset="0" width="32">0x20</field>
+            <field Type="RW" name="CFG_FAW" offset="0" width="32">0x1C</field>
           </register>
           <register address="0x0000405C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RFC">
-            <field Type="RW" name="CFG_RFC" offset="0" width="32">0x130</field>
+            <field Type="RW" name="CFG_RFC" offset="0" width="32">0x00000076</field>
           </register>
           <register address="0x00004060" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RTP">
-            <field Type="RW" name="CFG_RTP" offset="0" width="32">0x8</field>
+            <field Type="RW" name="CFG_RTP" offset="0" width="32">0x6</field>
           </register>
           <register address="0x00004064" description="IP Blk = MC_BASE2 Access=RW " name="CFG_WR">
-            <field Type="RW" name="CFG_WR" offset="0" width="32">0x10</field>
+            <field Type="RW" name="CFG_WR" offset="0" width="32">0xC</field>
           </register>
           <register address="0x00004068" description="IP Blk = MC_BASE2 Access=RW " name="CFG_WTR">
-            <field Type="RW" name="CFG_WTR" offset="0" width="32">0x8</field>
+            <field Type="RW" name="CFG_WTR" offset="0" width="32">0x00000008</field>
           </register>
           <register address="0x00004070" description="IP Blk = MC_BASE2 Access=RW " name="CFG_PASR">
-            <field Type="RW" name="CFG_PASR" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_PASR" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00004074" description="IP Blk = MC_BASE2 Access=RW " name="CFG_XP">
-            <field Type="RW" name="CFG_XP" offset="0" width="32">0x6</field>
+            <field Type="RW" name="CFG_XP" offset="0" width="32">0x00000003</field>
           </register>
           <register address="0x00004078" description="IP Blk = MC_BASE2 Access=RW " name="CFG_XSR">
-            <field Type="RW" name="CFG_XSR" offset="0" width="32">0x1F</field>
+            <field Type="RW" name="CFG_XSR" offset="0" width="32">0x00000024</field>
           </register>
           <register address="0x00004080" description="IP Blk = MC_BASE2 Access=RW " name="CFG_CL">
-            <field Type="RW" name="CFG_CL" offset="0" width="32">0x5</field>
+            <field Type="RW" name="CFG_CL" offset="0" width="32">0xB</field>
           </register>
           <register address="0x00004088" description="IP Blk = MC_BASE2 Access=RW " name="CFG_READ_TO_WRITE">
             <field Type="RW" name="CFG_READ_TO_WRITE" offset="0" width="32">0xF</field>
           </register>
           <register address="0x0000408C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_WRITE_TO_WRITE">
-            <field Type="RW" name="CFG_WRITE_TO_WRITE" offset="0" width="32">0xF</field>
+            <field Type="RW" name="CFG_WRITE_TO_WRITE" offset="0" width="32">0x2</field>
           </register>
           <register address="0x00004090" description="IP Blk = MC_BASE2 Access=RW " name="CFG_READ_TO_READ">
-            <field Type="RW" name="CFG_READ_TO_READ" offset="0" width="32">0xF</field>
+            <field Type="RW" name="CFG_READ_TO_READ" offset="0" width="32">0x2</field>
           </register>
           <register address="0x00004094" description="IP Blk = MC_BASE2 Access=RW " name="CFG_WRITE_TO_READ">
-            <field Type="RW" name="CFG_WRITE_TO_READ" offset="0" width="32">0x1F</field>
+            <field Type="RW" name="CFG_WRITE_TO_READ" offset="0" width="32">0x1</field>
           </register>
           <register address="0x00004098" description="IP Blk = MC_BASE2 Access=RW " name="CFG_READ_TO_WRITE_ODT">
-            <field Type="RW" name="CFG_READ_TO_WRITE_ODT" offset="0" width="32">0x1</field>
+            <field Type="RW" name="CFG_READ_TO_WRITE_ODT" offset="0" width="32">0xF</field>
           </register>
           <register address="0x0000409C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_WRITE_TO_WRITE_ODT">
-            <field Type="RW" name="CFG_WRITE_TO_WRITE_ODT" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_WRITE_TO_WRITE_ODT" offset="0" width="32">0x2</field>
           </register>
           <register address="0x000040A0" description="IP Blk = MC_BASE2 Access=RW " name="CFG_READ_TO_READ_ODT">
-            <field Type="RW" name="CFG_READ_TO_READ_ODT" offset="0" width="32">0x1</field>
+            <field Type="RW" name="CFG_READ_TO_READ_ODT" offset="0" width="32">0x2</field>
           </register>
           <register address="0x000040A4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_WRITE_TO_READ_ODT">
             <field Type="RW" name="CFG_WRITE_TO_READ_ODT" offset="0" width="32">0x1</field>
@@ -2798,25 +2798,25 @@
             <field Type="RW" name="CFG_MIN_READ_IDLE" offset="0" width="32">0x7</field>
           </register>
           <register address="0x000040AC" description="IP Blk = MC_BASE2 Access=RW " name="CFG_MRD">
-            <field Type="RW" name="CFG_MRD" offset="0" width="32">0xC</field>
+            <field Type="RW" name="CFG_MRD" offset="0" width="32">0x00000010</field>
           </register>
           <register address="0x000040B0" description="IP Blk = MC_BASE2 Access=RW " name="CFG_BT">
             <field Type="RW" name="CFG_BT" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000040B4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_DS">
-            <field Type="RW" name="CFG_DS" offset="0" width="32">0x6</field>
+            <field Type="RW" name="CFG_DS" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000040B8" description="IP Blk = MC_BASE2 Access=RW " name="CFG_QOFF">
             <field Type="RW" name="CFG_QOFF" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000040C4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RTT">
-            <field Type="RW" name="CFG_RTT" offset="0" width="32">0x2</field>
+            <field Type="RW" name="CFG_RTT" offset="0" width="32">0x1</field>
           </register>
           <register address="0x000040C8" description="IP Blk = MC_BASE2 Access=RW " name="CFG_DLL_DISABLE">
             <field Type="RW" name="CFG_DLL_DISABLE" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000040CC" description="IP Blk = MC_BASE2 Access=RW " name="CFG_REF_PER">
-            <field Type="RW" name="CFG_REF_PER" offset="0" width="32">0xC34</field>
+            <field Type="RW" name="CFG_REF_PER" offset="0" width="32">0x1860</field>
           </register>
           <register address="0x000040D0" description="IP Blk = MC_BASE2 Access=RW " name="CFG_STARTUP_DELAY">
             <field Type="RW" name="CFG_STARTUP_DELAY" offset="0" width="32">0x27100</field>
@@ -2831,10 +2831,10 @@
             <field Type="RW" name="CFG_MEM_BANKBITS" offset="0" width="32">0x3</field>
           </register>
           <register address="0x000040E0" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ODT_RD_MAP_CS0">
-            <field Type="RW" name="CFG_ODT_RD_MAP_CS0" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ODT_RD_MAP_CS0" offset="0" width="32">0x00</field>
           </register>
           <register address="0x000040E4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ODT_RD_MAP_CS1">
-            <field Type="RW" name="CFG_ODT_RD_MAP_CS1" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ODT_RD_MAP_CS1" offset="0" width="32">0x00</field>
           </register>
           <register address="0x000040E8" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ODT_RD_MAP_CS2">
             <field Type="RW" name="CFG_ODT_RD_MAP_CS2" offset="0" width="32">0x0</field>
@@ -2855,10 +2855,10 @@
             <field Type="RW" name="CFG_ODT_RD_MAP_CS7" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00004120" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ODT_WR_MAP_CS0">
-            <field Type="RW" name="CFG_ODT_WR_MAP_CS0" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ODT_WR_MAP_CS0" offset="0" width="32">0x00</field>
           </register>
           <register address="0x00004124" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ODT_WR_MAP_CS1">
-            <field Type="RW" name="CFG_ODT_WR_MAP_CS1" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ODT_WR_MAP_CS1" offset="0" width="32">0x00</field>
           </register>
           <register address="0x00004128" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ODT_WR_MAP_CS2">
             <field Type="RW" name="CFG_ODT_WR_MAP_CS2" offset="0" width="32">0x0</field>
@@ -2891,7 +2891,7 @@
             <field Type="RW" name="CFG_ODT_WR_TURN_OFF" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00004178" description="IP Blk = MC_BASE2 Access=RW " name="CFG_EMR3">
-            <field Type="RW" name="CFG_EMR3" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_EMR3" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x0000417C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_TWO_T">
             <field Type="RW" name="CFG_TWO_T" offset="0" width="32">0x0</field>
@@ -2903,22 +2903,22 @@
             <field Type="RW" name="CFG_REGDIMM" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00004188" description="IP Blk = MC_BASE2 Access=RW " name="CFG_MOD">
-            <field Type="RW" name="CFG_MOD" offset="0" width="32">0xC</field>
+            <field Type="RW" name="CFG_MOD" offset="0" width="32">0x18</field>
           </register>
           <register address="0x0000418C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_XS">
-            <field Type="RW" name="CFG_XS" offset="0" width="32">0x5</field>
+            <field Type="RW" name="CFG_XS" offset="0" width="32">0x120</field>
           </register>
           <register address="0x00004190" description="IP Blk = MC_BASE2 Access=RW " name="CFG_XSDLL">
             <field Type="RW" name="CFG_XSDLL" offset="0" width="32">0x00000200</field>
           </register>
           <register address="0x00004194" description="IP Blk = MC_BASE2 Access=RW " name="CFG_XPR">
-            <field Type="RW" name="CFG_XPR" offset="0" width="32">0x5</field>
+            <field Type="RW" name="CFG_XPR" offset="0" width="32">0x120</field>
           </register>
           <register address="0x00004198" description="IP Blk = MC_BASE2 Access=RW " name="CFG_AL_MODE">
             <field Type="RW" name="CFG_AL_MODE" offset="0" width="32">0x0</field>
           </register>
           <register address="0x0000419C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_CWL">
-            <field Type="RW" name="CFG_CWL" offset="0" width="32">0x5</field>
+            <field Type="RW" name="CFG_CWL" offset="0" width="32">0xB</field>
           </register>
           <register address="0x000041A0" description="IP Blk = MC_BASE2 Access=RW " name="CFG_BL_MODE">
             <field Type="RW" name="CFG_BL_MODE" offset="0" width="32">0x0</field>
@@ -2930,19 +2930,19 @@
             <field Type="RW" name="CFG_RTT_WR" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000041AC" description="IP Blk = MC_BASE2 Access=RW " name="CFG_LP_ASR">
-            <field Type="RW" name="CFG_LP_ASR" offset="0" width="32">0x00000000</field>
+            <field Type="RW" name="CFG_LP_ASR" offset="0" width="32">0x3</field>
           </register>
           <register address="0x000041B0" description="IP Blk = MC_BASE2 Access=RW " name="CFG_AUTO_SR">
-            <field Type="RW" name="CFG_AUTO_SR" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_AUTO_SR" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x000041B4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_SRT">
-            <field Type="RW" name="CFG_SRT" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_SRT" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x000041B8" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ADDR_MIRROR">
             <field Type="RW" name="CFG_ADDR_MIRROR" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000041BC" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ZQ_CAL_TYPE">
-            <field Type="RW" name="CFG_ZQ_CAL_TYPE" offset="0" width="32">0x1</field>
+            <field Type="RW" name="CFG_ZQ_CAL_TYPE" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000041C0" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ZQ_CAL_PER">
             <field Type="RW" name="CFG_ZQ_CAL_PER" offset="0" width="32">0x27100</field>
@@ -2951,7 +2951,7 @@
             <field Type="RW" name="CFG_AUTO_ZQ_CAL_EN" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000041C8" description="IP Blk = MC_BASE2 Access=RW " name="CFG_MEMORY_TYPE">
-            <field Type="RW" name="CFG_MEMORY_TYPE" offset="0" width="32">0x400</field>
+            <field Type="RW" name="CFG_MEMORY_TYPE" offset="0" width="32">0x80</field>
           </register>
           <register address="0x000041CC" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ONLY_SRANK_CMDS">
             <field Type="RW" name="CFG_ONLY_SRANK_CMDS" offset="0" width="32">0x0</field>
@@ -2993,34 +2993,34 @@
             <field Type="RW" name="INIT_NOP" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00004204" description="IP Blk = MC_BASE2 Access=RW " name="CFG_INIT_DURATION">
-            <field Type="RW" name="CFG_INIT_DURATION" offset="0" width="32">0x640</field>
+            <field Type="RW" name="CFG_INIT_DURATION" offset="0" width="32">0x000029B0</field>
           </register>
           <register address="0x00004208" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ZQINIT_CAL_DURATION">
-            <field Type="RW" name="CFG_ZQINIT_CAL_DURATION" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ZQINIT_CAL_DURATION" offset="0" width="32">0x400</field>
           </register>
           <register address="0x0000420C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ZQ_CAL_L_DURATION">
-            <field Type="RW" name="CFG_ZQ_CAL_L_DURATION" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ZQ_CAL_L_DURATION" offset="0" width="32">0x200</field>
           </register>
           <register address="0x00004210" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ZQ_CAL_S_DURATION">
-            <field Type="RW" name="CFG_ZQ_CAL_S_DURATION" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ZQ_CAL_S_DURATION" offset="0" width="32">0x80</field>
           </register>
           <register address="0x00004214" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ZQ_CAL_R_DURATION">
-            <field Type="RW" name="CFG_ZQ_CAL_R_DURATION" offset="0" width="32">0x28</field>
+            <field Type="RW" name="CFG_ZQ_CAL_R_DURATION" offset="0" width="32">0x0000000b</field>
           </register>
           <register address="0x00004218" description="IP Blk = MC_BASE2 Access=RW " name="CFG_MRR">
-            <field Type="RW" name="CFG_MRR" offset="0" width="32">0x8</field>
+            <field Type="RW" name="CFG_MRR" offset="0" width="32">0x00000002</field>
           </register>
           <register address="0x0000421C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_MRW">
-            <field Type="RW" name="CFG_MRW" offset="0" width="32">0xA</field>
+            <field Type="RW" name="CFG_MRW" offset="0" width="32">0x00000010</field>
           </register>
           <register address="0x00004220" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ODT_POWERDOWN">
             <field Type="RW" name="CFG_ODT_POWERDOWN" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00004224" description="IP Blk = MC_BASE2 Access=RW " name="CFG_WL">
-            <field Type="RW" name="CFG_WL" offset="0" width="32">0x8</field>
+            <field Type="RW" name="CFG_WL" offset="0" width="32">0x00000009</field>
           </register>
           <register address="0x00004228" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RL">
-            <field Type="RW" name="CFG_RL" offset="0" width="32">0xE</field>
+            <field Type="RW" name="CFG_RL" offset="0" width="32">0x0000000C</field>
           </register>
           <register address="0x0000422C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_CAL_READ_PERIOD">
             <field Type="RW" name="CFG_CAL_READ_PERIOD" offset="0" width="32">0x0</field>
@@ -3059,22 +3059,22 @@
             <field Type="RW" name="INIT_MEMORY_RESET_MASK" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x0000426C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RD_PREAMB_TOGGLE">
-            <field Type="RW" name="CFG_RD_PREAMB_TOGGLE" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_RD_PREAMB_TOGGLE" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00004270" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RD_POSTAMBLE">
-            <field Type="RW" name="CFG_RD_POSTAMBLE" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_RD_POSTAMBLE" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00004274" description="IP Blk = MC_BASE2 Access=RW " name="CFG_PU_CAL">
-            <field Type="RW" name="CFG_PU_CAL" offset="0" width="32">0x1</field>
+            <field Type="RW" name="CFG_PU_CAL" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00004278" description="IP Blk = MC_BASE2 Access=RW " name="CFG_DQ_ODT">
-            <field Type="RW" name="CFG_DQ_ODT" offset="0" width="32">0x2</field>
+            <field Type="RW" name="CFG_DQ_ODT" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x0000427C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_CA_ODT">
-            <field Type="RW" name="CFG_CA_ODT" offset="0" width="32">0x4</field>
+            <field Type="RW" name="CFG_CA_ODT" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00004280" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ZQLATCH_DURATION">
-            <field Type="RW" name="CFG_ZQLATCH_DURATION" offset="0" width="32">0x18</field>
+            <field Type="RW" name="CFG_ZQLATCH_DURATION" offset="0" width="32">0x00000030</field>
           </register>
           <register address="0x00004284" description="IP Blk = MC_BASE2 Access=RW " name="INIT_CAL_SELECT">
             <field Type="RW" name="INIT_CAL_SELECT" offset="0" width="32">0x00000000</field>
@@ -3101,7 +3101,7 @@
             <field Type="RW" name="INIT_ZQ_CAL_START" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x000042B4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_WR_POSTAMBLE">
-            <field Type="RW" name="CFG_WR_POSTAMBLE" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_WR_POSTAMBLE" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x000042BC" description="IP Blk = MC_BASE2 Access=RW " name="INIT_CAL_L_ADDR_0">
             <field Type="RW" name="INIT_CAL_L_ADDR_0" offset="0" width="32">0x00000000</field>
@@ -3143,10 +3143,10 @@
             <field Type="RW" name="CFG_ASYNC_ODT" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x000042F0" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ZQ_CAL_DURATION">
-            <field Type="RW" name="CFG_ZQ_CAL_DURATION" offset="0" width="32">0x320</field>
+            <field Type="RW" name="CFG_ZQ_CAL_DURATION" offset="0" width="32">0x00000640</field>
           </register>
           <register address="0x000042F4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_MRRI">
-            <field Type="RW" name="CFG_MRRI" offset="0" width="32">0x12</field>
+            <field Type="RW" name="CFG_MRRI" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x000042F8" description="IP Blk = MC_BASE2 Access=RW " name="INIT_ODT_FORCE_EN">
             <field Type="RW" name="INIT_ODT_FORCE_EN" offset="0" width="32">0x00000000</field>
@@ -3194,7 +3194,7 @@
             <field Type="RW" name="CFG_BURST_RW_REFRESH_HOLDOFF" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00004384" description="IP Blk = MC_BASE2 Access=RW " name="CFG_BG_INTERLEAVE">
-            <field Type="RW" name="CFG_BG_INTERLEAVE" offset="0" width="32">0x00000001</field>
+            <field Type="RW" name="CFG_BG_INTERLEAVE" offset="0" width="32">0x1</field>
           </register>
           <register address="0x000043FC" description="IP Blk = MC_BASE2 Access=RW " name="CFG_REFRESH_DURING_PHY_TRAINING">
             <field Type="RW" name="CFG_REFRESH_DURING_PHY_TRAINING" offset="0" width="32">0x00000000</field>
@@ -3248,13 +3248,13 @@
             <field Type="RW" name="CFG_RO_PRIORITY_EN" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00005400" description="IP Blk = RMW Access=RW " name="CFG_DM_EN">
-            <field Type="RW" name="CFG_DM_EN" offset="0" width="32">0x1</field>
+            <field Type="RW" name="CFG_DM_EN" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00005404" description="IP Blk = RMW Access=RW " name="CFG_RMW_EN">
             <field Type="RW" name="CFG_RMW_EN" offset="0" width="32">0x1</field>
           </register>
           <register address="0x00005800" description="IP Blk = ECC Access=RW " name="CFG_ECC_CORRECTION_EN">
-            <field Type="RW" name="CFG_ECC_CORRECTION_EN" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_ECC_CORRECTION_EN" offset="0" width="32">0x1</field>
           </register>
           <register address="0x00005840" description="IP Blk = ECC Access=RW " name="CFG_ECC_BYPASS">
             <field Type="RW" name="CFG_ECC_BYPASS" offset="0" width="32">0x00000000</field>
@@ -3341,13 +3341,13 @@
             <field Type="RW" name="INIT_CA_PARITY_ERROR_GEN_CMD" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00010000" description="IP Blk = DFI Access=RW " name="CFG_DFI_T_RDDATA_EN">
-            <field Type="RW" name="CFG_DFI_T_RDDATA_EN" offset="0" width="32">0x15</field>
+            <field Type="RW" name="CFG_DFI_T_RDDATA_EN" offset="0" width="32">0x14</field>
           </register>
           <register address="0x00010004" description="IP Blk = DFI Access=RW " name="CFG_DFI_T_PHY_RDLAT">
             <field Type="RW" name="CFG_DFI_T_PHY_RDLAT" offset="0" width="32">0x6</field>
           </register>
           <register address="0x00010008" description="IP Blk = DFI Access=RW " name="CFG_DFI_T_PHY_WRLAT">
-            <field Type="RW" name="CFG_DFI_T_PHY_WRLAT" offset="0" width="32">0x3</field>
+            <field Type="RW" name="CFG_DFI_T_PHY_WRLAT" offset="0" width="32">0x1</field>
           </register>
           <register address="0x0001000C" description="IP Blk = DFI Access=RW " name="CFG_DFI_PHYUPD_EN">
             <field Type="RW" name="CFG_DFI_PHYUPD_EN" offset="0" width="32">0x00000001</field>
@@ -3377,7 +3377,7 @@
             <field Type="RW" name="CFG_DFI_LVL_PATTERN" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x00010050" description="IP Blk = DFI Access=RW " name="PHY_DFI_INIT_START">
-            <field Type="RW" name="PHY_DFI_INIT_START" offset="0" width="32">0x1</field>
+            <field Type="RW" name="PHY_DFI_INIT_START" offset="0" width="32">0x0</field>
           </register>
           <register address="0x00012C18" description="IP Blk = AXI_IF Access=RW " name="CFG_AXI_START_ADDRESS_AXI1_0">
             <field Type="RW" name="CFG_AXI_START_ADDRESS_AXI1_0" offset="0" width="32">0x00000000</field>
@@ -3443,7 +3443,7 @@
             <field Type="RW" name="PHY_WRITE_LEVEL_DELAY" offset="0" width="32">0x00000000</field>
           </register>
           <register address="0x0003C020" description="IP Blk = csr_custom Access=RW " name="PHY_GATE_TRAIN_DELAY">
-            <field Type="RW" name="PHY_GATE_TRAIN_DELAY" offset="0" width="32">0x3F</field>
+            <field Type="RW" name="PHY_GATE_TRAIN_DELAY" offset="0" width="32">0x2F</field>
           </register>
           <register address="0x0003C024" description="IP Blk = csr_custom Access=RW " name="PHY_EYE_TRAIN_DELAY">
             <field Type="RW" name="PHY_EYE_TRAIN_DELAY" offset="0" width="32">0x3F</field>
@@ -3481,25 +3481,25 @@
           <register address="0" description="This version incrments when change to format of this file" name="MSS_CLKS_VERSION">
             <field Type="RW" name="VERSION" offset="0" width="32">0x1</field>
           </register>
-          <register address="4" description="Ref Clock rate in MHz" name="MSS_EXT_SGMII_REF_CLK">
+          <register address="4" description="Ref Clock rate in Hz" name="MSS_EXT_SGMII_REF_CLK">
             <field Type="RW" name="MSS_EXT_SGMII_REF_CLK" offset="0" width="32">125000000</field>
           </register>
-          <register address="8" description="CPU Clock rate in MHz" name="MSS_COREPLEX_CPU_CLK">
+          <register address="8" description="CPU Clock rate in Hz" name="MSS_COREPLEX_CPU_CLK">
             <field Type="RW" name="MSS_COREPLEX_CPU_CLK" offset="0" width="32">600000000</field>
           </register>
-          <register address="12" description="System Clock rate in MHz static power." name="MSS_SYSTEM_CLK">
+          <register address="12" description="System Clock rate in Hz static power." name="MSS_SYSTEM_CLK">
             <field Type="RW" name="MSS_SYSTEM_CLK" offset="0" width="32">600000000</field>
           </register>
-          <register address="16" description="RTC toggle Clock rate in MHz static power." name="MSS_RTC_TOGGLE_CLK">
+          <register address="16" description="RTC toggle Clock rate in Hz static power." name="MSS_RTC_TOGGLE_CLK">
             <field Type="RW" name="MSS_RTC_TOGGLE_CLK" offset="0" width="32">1000000</field>
           </register>
-          <register address="20" description="AXI Clock rate in MHz static power." name="MSS_AXI_CLK">
+          <register address="20" description="AXI Clock rate in Hz static power." name="MSS_AXI_CLK">
             <field Type="RW" name="MSS_AXI_CLK" offset="0" width="32">300000000</field>
           </register>
-          <register address="24" description="AXI Clock rate in MHz static power." name="MSS_APB_AHB_CLK">
+          <register address="24" description="AXI Clock rate in Hz static power." name="MSS_APB_AHB_CLK">
             <field Type="RW" name="MSS_APB_AHB_CLK" offset="0" width="32">150000000</field>
           </register>
-          <register address="28" description="DDR clock rate in MHz (clk rate x 2)" name="DDR_CLK">
+          <register address="28" description="DDR clock rate in Hz (clk rate x 2)" name="DDR_CLK">
             <field Type="RW" name="DDR_CLK" offset="0" width="32">1600000000</field>
           </register>
         </registers>
@@ -3542,7 +3542,7 @@
             <field Type="RW" name="REG_DIVQ0_EN" offset="2" width="1">0x1</field>
             <field Type="RW" name="REG_DIVQ1_EN" offset="3" width="1">0x0</field>
             <field Type="RW" name="REG_DIVQ2_EN" offset="4" width="1">0x1</field>
-            <field Type="RW" name="REG_DIVQ3_EN" offset="5" width="1">0x1</field>
+            <field Type="RW" name="REG_DIVQ3_EN" offset="5" width="1">0x0</field>
             <field Type="RW" name="REG_RFCLK_SEL" offset="6" width="1">0x0</field>
             <field Type="RW" name="RESETONLOCK" offset="7" width="1">0x0</field>
             <field Type="RW" name="BYPCK_SEL" offset="8" width="4">0x0</field>
@@ -3596,7 +3596,7 @@
             <field Type="RO" name="VCO3PH_SEL" offset="16" width="3">0x0</field>
             <field Type="RW" name="DIV3_START" offset="19" width="3">0x0</field>
             <field Type="RSVD" name="RESERVE24" offset="22" width="2">0x0</field>
-            <field Type="RW" name="POST3DIV" offset="24" width="7">0x4B</field>
+            <field Type="RW" name="POST3DIV" offset="24" width="7">0x1</field>
             <field Type="RW" name="CKPOST3_SEL" offset="31" width="1">0x0</field>
           </register>
           <register address="0x00000018" description="PLL control register" name="PLL_CTRL2">

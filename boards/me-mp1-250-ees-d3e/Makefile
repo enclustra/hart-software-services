@@ -30,12 +30,12 @@
 $(info me-mp1-250-ees-d3e selected)
 
 BINDIR=Default
-TARGET-l2lim=hss-l2lim.elf
+TARGET-l2scratch=hss-l2scratch.elf
 TARGET-envm-wrapper=hss-envm-wrapper.elf
-RISCV_TARGET=$(TARGET-l2lim) $(TARGET-envm-wrapper)
+RISCV_TARGET=$(TARGET-l2scratch) $(TARGET-envm-wrapper)
 TARGET:=$(RISCV_TARGET)
 
-LINKER_SCRIPT-l2lim=boards/${BOARD}/hss-l2lim.ld
+LINKER_SCRIPT-l2scratch=boards/${BOARD}/hss-l2scratch.ld
 
 CONFIG_PLATFORM_MPFS=y
 PLATFORM_CFLAGS += -DCONFIG_PLATFORM_MPFS=1
@@ -52,6 +52,9 @@ EXTRA_SRCS-y += \
         $(BOARD_DIR)/uart_helper.c \
         $(BOARD_DIR)/hss_board_init.c \
 
+EXTRA_SRCS-$(CONFIG_USE_LOGO) += \
+        init/hss_logo_init.c
+
 $(BOARD_DIR)/hss_uart_init.o: CFLAGS=$(CFLAGS_GCCEXT)
 
 EXTRA_OBJS-$(CONFIG_SERVICE_BOOT_USE_PAYLOAD) += $(BOARD_DIR)/payload.o
@@ -67,22 +70,17 @@ INCLUDES += \
 	-Ibaremetal/ \
 	-Ibaremetal/drivers/winbond_w25n01gv \
 
-EXTRA_SRCS-$(CONFIG_SERVICE_YMODEM) += \
-	baremetal/drivers/mss_envm/mss_envm.c
-
 EXTRA_SRCS-$(CONFIG_SERVICE_QSPI) += \
 	baremetal/drivers/winbond_w25n01gv/winbond_w25n01gv.c
 
 baremetal/drivers/winbond_w25n01gv/winbond_w25n01gv.o: CFLAGS=$(CFLAGS_GCCEXT)
-baremetal/drivers/micron_mt25q/micron_mt25q.o: CFLAGS=$(CFLAGS_GCCEXT)
-baremetal/drivers/mss_envm/mss_envm.o: CFLAGS=$(CFLAGS_GCCEXT)
 
 ################################################################################################
 #
 # Linker Scripts
 #
 
-$(BOARD_DIR)/hss-l2lim.ld: $(BOARD_DIR)/hss-l2lim.lds config.h
+$(BOARD_DIR)/hss-l2scratch.ld: $(BOARD_DIR)/hss-l2scratch.lds config.h
 
 ################################################################################################
 

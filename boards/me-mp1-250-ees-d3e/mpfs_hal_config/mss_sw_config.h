@@ -158,7 +158,7 @@
  * Note: If you are the zero stage bootloader, set this to one.
  */
 #ifndef MPFS_HAL_CLEAR_MEMORY
-#define MPFS_HAL_CLEAR_MEMORY  1
+#define MPFS_HAL_CLEAR_MEMORY  0
 #endif
 
 /*
@@ -172,44 +172,6 @@
 #define DDR_SUPPORT
 #define MSSIO_SUPPORT
 
-/*
-* We need to redefine the following AXI address range if set incorrectly
-* This is the case for Libero 12.5 and Libero 12.6
-* If using MSS Configurator 2021.1 or later the following four lines can be
-* removed.
-* LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI1_0
-* is the definition for cached axi addrress
-* LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_0
-* is the address for non-cached Libero address
-* 0x7FFFFFFFUL => 2 GB address range
-*
-*/
-//#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI1_0    0x7FFFFFFFUL
-//#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI1_1    0x00000000UL
-//#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_0    0x7FFFFFFFUL
-//#define LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_1    0x00000000UL
-
-/*
-  * Changes are fixes to data mismatches seen when applying the new
-  * DDR workload identified by the Linux boot failures on the icicle kit.
-  * CFG_MIN_READ_IDLE helped it pass in DDR3/DDR4, and CFG_READ_TO_WRITE fixed
-  * a different issue where 0's were being read back with the same workload on
-  * LPDDR3.
-  */
-#define LIBERO_SETTING_CFG_MIN_READ_IDLE             0x00000007UL
-
-/* For LPDDR3 only: */
-//#define LIBERO_SETTING_CFG_READ_TO_WRITE             0x00000006UL
-//#define LIBERO_SETTING_CFG_READ_TO_WRITE_ODT         0x00000006UL
-
-/*
-* The following three setting disable Data Mask and enable Read Write Modify
-* This is required if accessing LPDDR4 with non-cached writes and using
-* MSS Configurator 2021.1 or earlier.
-*/
-#define LIBERO_SETTING_CFG_DM_EN 0x00000000UL
-#define LIBERO_SETTING_CFG_RMW_EN 0x00000001UL
-#define LIBERO_SETTING_DDRPHY_MODE 0x00014A24UL
 
 
 /*
@@ -220,16 +182,12 @@
 #define LIBERO_SETTING_CONTEXT_B_HART_EN    0x00000010UL    /* hart 4 */
 
 /*
- * DDR software options
- */
-
-/*
  * Debug DDR startup through a UART
- * Comment out in normal operation. May be useful for debug purposes in bring-up
- * of a new board design.
- * See the weakly linked function setup_ddr_debug_port(mss_uart_instance_t * uart)
- * If you need to edit this function, make another copy of the function in your
- * application without the weak linking attribute. This copy will then get linked.
+ * Comment out in normal operation. Useful for debug purposes in bring-up of DDR
+ * in a new board design.
+ * See the weak function setup_ddr_debug_port(mss_uart_instance_t * uart)
+ * If you need to edit this function, make a copy of the function without the
+ * weak declaration in your application code.
  * */
 //#define DEBUG_DDR_INIT
 //#define DEBUG_DDR_RD_RW_FAIL

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2017-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2017-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -37,8 +37,6 @@
 
 const struct InitFunction /*@null@*/ boardInitFunctions[] = {
     // Name                     FunctionPointer         Halt   Restart
-    { "HSS_Setup_Clocks",       HSS_Setup_Clocks,       false, false },
-    //{ "HSS_Setup_PAD_IO",       HSS_Setup_PAD_IO,       false, false },
     { "HSS_ZeroTIMs",           HSS_ZeroTIMs,           false, false },
     { "HSS_Setup_PLIC",         HSS_Setup_PLIC,         false, false },
     { "HSS_Setup_BusErrorUnit", HSS_Setup_BusErrorUnit, false, false },
@@ -48,6 +46,7 @@ const struct InitFunction /*@null@*/ boardInitFunctions[] = {
 #ifdef CONFIG_USE_PCIE
     { "HSS_PCIeInit",           HSS_PCIeInit,           false, false },
 #endif
+    { "HSS_USBInit",            HSS_USBInit,            false, false },
 };
 
 /******************************************************************************************************/
@@ -72,7 +71,7 @@ bool HSS_BoardInit(void)
 bool HSS_BoardLateInit(void)
 {
 #if defined(CONFIG_SERVICE_MMC_MODE_SDCARD) || defined(CONFIG_SERVICE_MMC_MODE_EMMC)
-    mHSS_DEBUG_PRINTF(LOG_WARN, "Hello my friend" CRLF);
+    mHSS_DEBUG_PRINTF(LOG_WARN, "Hello my friend\n");
 #endif
     return true;
 }

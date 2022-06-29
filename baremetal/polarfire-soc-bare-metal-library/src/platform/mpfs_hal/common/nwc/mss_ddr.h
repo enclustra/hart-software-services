@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -326,11 +326,6 @@ typedef enum DDR_MEMORY_ACCESS_
     DDR_NC_WCB_2GB,
 } DDR_MEMORY_ACCESS;
 
-/* DDR clk frequency - should come from  */
-#if !defined (LIBERO_SETTING_DDR_CLK)
-#define LIBERO_SETTING_DDR_CLK                  DDR_1600_MHZ
-#endif
-
 /* this is a fixed value, currently only 5 supported in the TIP  */
 #define MAX_POSSIBLE_TIP_TRAININGS    0x05U
 
@@ -345,26 +340,11 @@ typedef enum DDR_MEMORY_ACCESS_
 #define BCLK_DPC_VRGEN_V_MASK          (0x3FU<<12U)
 
 #define BCLK_DPC_VRGEN_H_SHIFT                (4U)
-#define BCLK_DPC_VRGEN_H_MASK          (0x3FU<<4U)
+#define BCLK_DPC_VRGEN_H_MASK           (0xFU<<4U)
 
 #define BCLK_DPC_VRGEN_VS_SHIFT                (0U)
 #define BCLK_DPC_VRGEN_VS_MASK           (0xFU<<0U)
 
-/* offsets and masks LIBERO_SETTING_DPC_BITS */
-#define DPC_VS_SHIFT                            0U
-#define DPC_VRGEN_H_SHIFT                       4U
-#define DPC_VRGEN_EN_H_SHIFT                    10U
-#define DPC_MOVE_EN_H_SHIFT                     11U
-#define DPC_VRGEN_V_SHIFT                       12U
-#define DPC_VRGEN_EN_V_SHIFT                    18U
-#define DPC_MOVE_EN_V_SHIFT                     19U
-#define DPC_VS_MASK                             (0xFU << DPC_VS_SHIFT)
-#define DPC_VRGEN_H_MASK                        (0x3FU << DPC_VRGEN_H_SHIFT)
-#define DPC_VRGEN_EN_H_MASK                     (0x1U << DPC_VRGEN_EN_H_SHIFT)
-#define DPC_MOVE_EN_H_MASK                      (0x1U << DPC_MOVE_EN_H_SHIFT)
-#define DPC_VRGEN_V_MASK                        (0xFU << DPC_VRGEN_V_SHIFT)
-#define DPC_VRGEN_EN_V_MASK                     (0x1U << DPC_VRGEN_EN_V_SHIFT)
-#define DPC_MOVE_EN_V_MASK                      (0x1U << DPC_MOVE_EN_V_SHIFT)
 
 /* masks and associated values used with  DDRPHY_MODE register */
 #define DDRPHY_MODE_MASK                0x7U
@@ -385,7 +365,7 @@ typedef enum DDR_MEMORY_ACCESS_
  * For Libero setting, we iterate through these values looking for a
  * Calibration pass */
 #define MIN_LATENCY                     0UL
-#define MAX_LATENCY                     3UL
+#define MAX_LATENCY                     3UL  //ML fixme- agree this value with Alister
 
 #define MTC_TIMEOUT_ERROR               0x02U
 
@@ -402,22 +382,6 @@ typedef enum DDR_MEMORY_ACCESS_
 #define ABNORMAL_RETRAIN_CA_DECREASE_COUNT          2U
 #define ABNORMAL_RETRAIN_CA_DLY_DECREASE_COUNT      2U
 #define DQ_DQS_NUM_TAPS                             5U
-#if !defined (LIBERO_SETTING_MIN_RPC_156_VALUE)
-#define LIBERO_SETTING_MIN_RPC_156_VALUE            1U
-#endif
-#if !defined (LIBERO_SETTING_MAX_RPC_156_VALUE)
-#define LIBERO_SETTING_MAX_RPC_156_VALUE            9U
-#endif
-#if !defined (LIBERO_SETTING_RPC_156_VALUE)
-
-
-/* DDR clk frequency - should come from  */
-#if (LIBERO_SETTING_DDR_CLK == DDR_1600_MHZ)
-#define LIBERO_SETTING_RPC_156_VALUE                6U
-#else
-#define LIBERO_SETTING_RPC_156_VALUE                1U
-#endif
-#endif
 /* #define SW_CONFIG_LPDDR_WR_CALIB_FN */
 
 #if !defined (LIBERO_SETTING_MAX_MANUAL_REF_CLK_PHASE_OFFSET)
@@ -433,7 +397,6 @@ typedef enum DDR_MEMORY_ACCESS_
 #define LIBERO_SETTING_MANUAL_REF_CLK_PHASE_OFFSET    0x00000006UL
     /* CA_BUS_RX_OFF_POST_TRAINING       [0:1]   RW value= 0x1 */
 #endif
-
 
 /*
  * We currently need at least one retrain, otherwise driver can get stuck in
@@ -484,7 +447,7 @@ typedef enum DDR_MEMORY_ACCESS_
 
 /* This is a fixed setting, will move into driver in next commit */
 #if !defined (SW_TRAING_BCLK_SCLK_OFFSET)
-#define SW_TRAING_BCLK_SCLK_OFFSET                  0x00000005UL
+#define SW_TRAING_BCLK_SCLK_OFFSET                  0x00000000UL
 #endif
 /*
  * 0x6DU => setting vref_ca to 40%
@@ -497,10 +460,7 @@ typedef enum DDR_MEMORY_ACCESS_
 
 /* number of test writes to perform */
 #if !defined (SW_CFG_NUM_READS_WRITES)
-#define SW_CFG_NUM_READS_WRITES                 0x20000U
-#endif
-#if !defined (SW_CFG_NUM_READS_WRITES_FAST_START)
-#define SW_CFG_NUM_READS_WRITES_FAST_START       0x2000U
+#define SW_CFG_NUM_READS_WRITES        0x20000U
 #endif
 /*
  * what test patterns to write/read on start-up
@@ -512,42 +472,6 @@ typedef enum DDR_MEMORY_ACCESS_
                                         PATTERN_RANDOM|\
                                         PATTERN_0xCCCCCCCC|\
                                         PATTERN_0x55555555)
-#endif
-#if !defined (SW_CONFIG_PATTERN_FAST_START)
-#define SW_CONFIG_PATTERN_FAST_START (PATTERN_INCREMENTAL|\
-                                        PATTERN_WALKING_ZERO)
-#endif
-
-#if !defined (LIBERO_FAST_START)
-#define LIBERO_FAST_START     0U
-#endif
-
-/*
- * Default order of ADDCMD clk pushes
- * These will be overwritten when supported in Libero
- * Currently (2022.03) if change of order required, define in mss_sw_config.h
- * Define in mss_sw_config.h will take precedence
- */
-#if (LIBERO_SETTING_DDR_CLK == DDR_1600_MHZ)
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ZERO)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ZERO                         1U
-#endif
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ONE)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ONE                          2U
-#endif
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_TWO)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_TWO                          0U
-#endif
-#else
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ZERO)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ZERO                         0U
-#endif
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ONE)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ONE                          1U
-#endif
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_TWO)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_TWO                          2U
-#endif
 #endif
 
 /*
@@ -590,7 +514,7 @@ typedef enum DDR_MEMORY_ACCESS_
 #define LIBERO_SETTING_REFCLK_DDR3L_1333_NUM_OFFSETS    3U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR4_1600_NUM_OFFSETS)
-#define LIBERO_SETTING_REFCLK_DDR4_1600_NUM_OFFSETS     4U
+#define LIBERO_SETTING_REFCLK_DDR4_1600_NUM_OFFSETS     2U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1600_NUM_OFFSETS)
 #define LIBERO_SETTING_REFCLK_LPDDR3_1600_NUM_OFFSETS   3U
@@ -599,13 +523,13 @@ typedef enum DDR_MEMORY_ACCESS_
 #define LIBERO_SETTING_REFCLK_LPDDR4_1600_NUM_OFFSETS   4U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR3_1067_NUM_OFFSETS)
-#define LIBERO_SETTING_REFCLK_DDR3_1067_NUM_OFFSETS     1U
+#define LIBERO_SETTING_REFCLK_DDR3_1067_NUM_OFFSETS     2U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR3L_1067_NUM_OFFSETS)
-#define LIBERO_SETTING_REFCLK_DDR3L_1067_NUM_OFFSETS    1U
+#define LIBERO_SETTING_REFCLK_DDR3L_1067_NUM_OFFSETS    2U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR4_1333_NUM_OFFSETS)
-#define LIBERO_SETTING_REFCLK_DDR4_1333_NUM_OFFSETS     4U
+#define LIBERO_SETTING_REFCLK_DDR4_1333_NUM_OFFSETS     3U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1333_NUM_OFFSETS)
 #define LIBERO_SETTING_REFCLK_LPDDR3_1333_NUM_OFFSETS   2U
@@ -621,10 +545,10 @@ typedef enum DDR_MEMORY_ACCESS_
 #define LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_1        1U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_2)
-#define LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_2        7U
+#define LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_2        0U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_3)
-#define LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_3        0U
+#define LIBERO_SETTING_REFCLK_DDR3_1333_OFFSET_3        1U
 #endif
 
 #if !defined (LIBERO_SETTING_REFCLK_DDR3L_1333_OFFSET_0)
@@ -644,10 +568,10 @@ typedef enum DDR_MEMORY_ACCESS_
 #define LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_0        7U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_1)
-#define LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_1        6U
+#define LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_1        0U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_2)
-#define LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_2        5U
+#define LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_2        7U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_3)
 #define LIBERO_SETTING_REFCLK_DDR4_1600_OFFSET_3        0U
@@ -663,19 +587,17 @@ typedef enum DDR_MEMORY_ACCESS_
 #define LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_2      1U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_3)
-#define LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_3      2U
+#define LIBERO_SETTING_REFCLK_LPDDR3_1600_OFFSET_3      0U
 #endif
 //LPDDR4@1600 = 5,4,6,3 changed to 5,4,6,2 16th Feb Alister
-//AUG Offsets changed to 4324
-//LPDDR4@1600 = 4,3,2,4 changed to 3,4,2,5 Feb 2022
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_0)
-#define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_0      3U
+#define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_0      1U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_1)
-#define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_1      4U
+#define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_1      5U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_2)
-#define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_2      2U
+#define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_2      1U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_3)
 #define LIBERO_SETTING_REFCLK_LPDDR4_1600_OFFSET_3      5U
@@ -691,7 +613,7 @@ typedef enum DDR_MEMORY_ACCESS_
 #define LIBERO_SETTING_REFCLK_DDR3_1067_OFFSET_1        2U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR3_1067_OFFSET_2)
-#define LIBERO_SETTING_REFCLK_DDR3_1067_OFFSET_2        3U
+#define LIBERO_SETTING_REFCLK_DDR3_1067_OFFSET_2        0U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR3_1067_OFFSET_3)
 #define LIBERO_SETTING_REFCLK_DDR3_1067_OFFSET_3        2U
@@ -704,7 +626,7 @@ typedef enum DDR_MEMORY_ACCESS_
 #define LIBERO_SETTING_REFCLK_DDR3L_1067_OFFSET_1       2U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR3L_1067_OFFSET_2)
-#define LIBERO_SETTING_REFCLK_DDR3L_1067_OFFSET_2       3U
+#define LIBERO_SETTING_REFCLK_DDR3L_1067_OFFSET_2       0U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR3L_1067_OFFSET_3)
 #define LIBERO_SETTING_REFCLK_DDR3L_1067_OFFSET_3       2U
@@ -717,10 +639,10 @@ typedef enum DDR_MEMORY_ACCESS_
 #define LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_1        1U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_2)
-#define LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_2        6U
+#define LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_2        7U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_3)
-#define LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_3        7U
+#define LIBERO_SETTING_REFCLK_DDR4_1333_OFFSET_3        0U
 #endif
 
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR3_1333_OFFSET_0)
@@ -737,16 +659,26 @@ typedef enum DDR_MEMORY_ACCESS_
 #endif
 
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_0)
-#define LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_0      2U
+#define LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_0      1U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_1)
-#define LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_1      1U
+#define LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_1      2U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_2)
 #define LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_2      3U
 #endif
 #if !defined (LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_3)
 #define LIBERO_SETTING_REFCLK_LPDDR4_1333_OFFSET_3      0U
+#endif
+
+#define DDR_1067_MHZ                            1067000000UL
+//#define DDR_1333_MHZ                            1333333333UL
+#define DDR_1600_MHZ                            1600000000UL
+#define DDR_FREQ_MARGIN                         10UL
+
+/* DDR clk frequency - should come from  */
+#if !defined (LIBERO_SETTING_DDR_CLK)
+#define LIBERO_SETTING_DDR_CLK                  1600000000UL
 #endif
 
 #ifndef NOT_A_FULL_RETRAIN
@@ -1027,14 +959,7 @@ typedef enum SEG_SETUP_{
     LIBERO_SEG_SETUP
 } SEG_SETUP;
 
-/***************************************************************************//**
 
- */
-typedef struct mss_ddr_diags_{
-    uint64_t    train_time;
-    uint32_t    num_retrains;
-    uint32_t    padding;
-} mss_ddr_diag;
 
 /***************************************************************************//**
 
@@ -1042,9 +967,9 @@ typedef struct mss_ddr_diags_{
 typedef struct mss_ddr_fpga_vref_{
     uint32_t    status_lower;
     uint32_t    status_upper;
-    uint32_t    lower;
-    uint32_t    upper;
-    uint32_t    vref_result;
+  uint32_t  lower;
+  uint32_t  upper;
+  uint32_t    vref_result;
 } mss_ddr_vref;
 
 /**

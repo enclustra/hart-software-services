@@ -4,7 +4,7 @@
       <design_name>MPFS250T_ES</design_name>
       <mpfs_part_no>MPFS250T_ES</mpfs_part_no>
       <mpfs_package>FCG1152</mpfs_package>
-      <creation_date_time>06-22-2022_19:07:51</creation_date_time>
+      <creation_date_time>06-28-2022_11:09:00</creation_date_time>
       <xml_format_version>0.5.9</xml_format_version>
     </design_information>
     <mss_memory_map>
@@ -2230,10 +2230,10 @@
             <field Type="RW" name="CRC" offset="4" width="1">0x0</field>
             <field Type="RW" name="BUS_WIDTH" offset="5" width="3">0x1</field>
             <field Type="RW" name="DMI_DBI" offset="8" width="1">0x0</field>
-            <field Type="RW" name="DQ_DRIVE" offset="9" width="2">0x0</field>
-            <field Type="RW" name="DQS_DRIVE" offset="11" width="2">0x0</field>
+            <field Type="RW" name="DQ_DRIVE" offset="9" width="2">0x1</field>
+            <field Type="RW" name="DQS_DRIVE" offset="11" width="2">0x1</field>
             <field Type="RW" name="ADD_CMD_DRIVE" offset="13" width="2">0x1</field>
-            <field Type="RW" name="CLOCK_OUT_DRIVE" offset="15" width="2">0x0</field>
+            <field Type="RW" name="CLOCK_OUT_DRIVE" offset="15" width="2">0x1</field>
             <field Type="RW" name="DQ_TERMINATION" offset="17" width="2">0x0</field>
             <field Type="RW" name="DQS_TERMINATION" offset="19" width="2">0x0</field>
             <field Type="RW" name="ADD_CMD_INPUT_PIN_TERMINATION" offset="21" width="2">0x0</field>
@@ -2287,7 +2287,7 @@
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
           <register address="0x00000004" description="Cached access at 0x10_0000_000" name="SEG0_1">
-            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7040</field>
+            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7030</field>
             <field Type="RW" name="RESERVED" offset="15" width="16">0x0</field>
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
@@ -2332,7 +2332,7 @@
             <field Type="RW" name="LOCKED" offset="31" width="1">0x0</field>
           </register>
           <register address="0x00000008" description="Non-Cached access at 0x00_c000_0000" name="SEG1_2">
-            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x0</field>
+            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7FB0</field>
             <field Type="RW" name="RESERVED" offset="15" width="16">0x0</field>
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
@@ -2342,7 +2342,7 @@
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
           <register address="0x00000016" description="Non-Cached WCB access at 0x00_d000_0000" name="SEG1_4">
-            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x0</field>
+            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7FA0</field>
             <field Type="RW" name="RESERVED" offset="15" width="16">0x0</field>
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
@@ -2804,13 +2804,13 @@
             <field Type="RW" name="CFG_BT" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000040B4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_DS">
-            <field Type="RW" name="CFG_DS" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_DS" offset="0" width="32">0x1</field>
           </register>
           <register address="0x000040B8" description="IP Blk = MC_BASE2 Access=RW " name="CFG_QOFF">
             <field Type="RW" name="CFG_QOFF" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000040C4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RTT">
-            <field Type="RW" name="CFG_RTT" offset="0" width="32">0x1</field>
+            <field Type="RW" name="CFG_RTT" offset="0" width="32">0x2</field>
           </register>
           <register address="0x000040C8" description="IP Blk = MC_BASE2 Access=RW " name="CFG_DLL_DISABLE">
             <field Type="RW" name="CFG_DLL_DISABLE" offset="0" width="32">0x0</field>

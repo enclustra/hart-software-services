@@ -18,6 +18,7 @@
 
 #include "hss_debug.h"
 
+#include "mss_gpio.h"
 #include "hss_init.h"
 #include "hss_state_machine.h"
 #include "ssmb_ipi.h"
@@ -70,8 +71,11 @@ bool HSS_BoardInit(void)
 
 bool HSS_BoardLateInit(void)
 {
-#if defined(CONFIG_SERVICE_MMC_MODE_SDCARD) || defined(CONFIG_SERVICE_MMC_MODE_EMMC)
-    mHSS_DEBUG_PRINTF(LOG_WARN, "Hello my friend\n");
-#endif
+    // Release MSS_RST#
+    mHSS_DEBUG_PRINTF(LOG_WARN, "Release MSS_RST#\n");
+    MSS_GPIO_init(GPIO0_LO);
+    MSS_GPIO_config(GPIO0_LO, MSS_GPIO_12, MSS_GPIO_OUTPUT_MODE);
+    MSS_GPIO_set_output(GPIO0_LO, MSS_GPIO_12, 1);
+
     return true;
 }

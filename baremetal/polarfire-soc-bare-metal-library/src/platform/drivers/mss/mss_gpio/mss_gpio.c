@@ -125,7 +125,7 @@ static uint8_t gpio_number_validate(GPIO_TypeDef const * gpio, mss_gpio_id_t gpi
  */
 void MSS_GPIO_init(GPIO_TypeDef * gpio)
 {
-#ifdef CONFIG_MODULE_M100PFS
+#if defined(CONFIG_MODULE_M100PFS) || defined(DCONFIG_MODULE_ENCLUSTRA_MP1)
     uint32_t clock_mask;
     uint32_t reset_mask;
 
@@ -144,7 +144,7 @@ void MSS_GPIO_init(GPIO_TypeDef * gpio)
     SYSREG->SUBBLK_CLOCK_CR |= clock_mask;
     SYSREG->SOFT_RESET_CR |= reset_mask;
     SYSREG->SOFT_RESET_CR &= ~reset_mask;
-#endif	/* CONFIG_MODULE_M100PFS */
+#endif
 
     /* clear all pending interrupts*/
     gpio->GPIO_IRQ = 0xFFFFFFFFU;

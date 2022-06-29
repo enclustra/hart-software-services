@@ -125,7 +125,7 @@ static uint8_t gpio_number_validate(GPIO_TypeDef const * gpio, mss_gpio_id_t gpi
  */
 void MSS_GPIO_init(GPIO_TypeDef * gpio)
 {
-#if defined(CONFIG_MODULE_M100PFS) || defined(DCONFIG_MODULE_ENCLUSTRA_MP1)
+#if defined(CONFIG_MODULE_M100PFS) || defined(CONFIG_MODULE_ENCLUSTRA_MP1)
     uint32_t clock_mask;
     uint32_t reset_mask;
 

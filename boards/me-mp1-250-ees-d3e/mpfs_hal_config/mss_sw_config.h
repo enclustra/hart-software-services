@@ -172,15 +172,6 @@
 #define DDR_SUPPORT
 #define MSSIO_SUPPORT
 
-
-
-/*
- * Debugging IHC. This placed memory map in volatile memory and uses software
- * state machine
- */
-#define LIBERO_SETTING_CONTEXT_A_HART_EN    0x0000000EUL    /* harts 1 to 3 */
-#define LIBERO_SETTING_CONTEXT_B_HART_EN    0x00000010UL    /* hart 4 */
-
 /*
  * Debug DDR startup through a UART
  * Comment out in normal operation. Useful for debug purposes in bring-up of DDR

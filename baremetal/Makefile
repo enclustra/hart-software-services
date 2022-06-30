@@ -69,14 +69,13 @@ endif
 ASM_SRCS += \
  	baremetal/polarfire-soc-bare-metal-library/src/platform/mpfs_hal/startup_gcc/mss_utils.S \
 
-	# baremetal/polarfire-soc-bare-metal-library/src/platform/mpfs_hal/startup_gcc/mss_mutex.S \
-
 INCLUDES += \
 	-Ibaremetal/polarfire-soc-bare-metal-library/src/platform/drivers/mss/mss_mmuart \
+	-Ibaremetal/polarfire-soc-bare-metal-library/src/platform/drivers/mss/mss_ethernet_mac \
 	-Ibaremetal/polarfire-soc-bare-metal-library/src/platform/drivers/mss/mss_mmc \
 	-Ibaremetal/polarfire-soc-bare-metal-library/src/platform/drivers/mss/mss_qspi \
 	-Ibaremetal/polarfire-soc-bare-metal-library/src/platform/drivers/mss/mss_pdma \
-        -Ibaremetal/polarfire-soc-bare-metal-library/src/platform/drivers/mss/mss_sys_services \
+	-Ibaremetal/polarfire-soc-bare-metal-library/src/platform/drivers/mss/mss_sys_services \
 	-Ibaremetal/drivers/mss/mss_watchdog \
 	-Ibaremetal/drivers/fpga_ip/miv_ihc \
 	-Ibaremetal/polarfire-soc-bare-metal-library/src/platform \

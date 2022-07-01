@@ -24,7 +24,6 @@
 #include "hss_state_machine.h"
 #include "ssmb_ipi.h"
 #include "hss_registry.h"
-#include "hal/hal.h"
 
 /******************************************************************************************************/
 /*!
@@ -63,34 +62,18 @@ const struct InitFunction /*@null@*/ boardInitFunctions[] = {
 /****************************************************************************/
 
 #define MSS_MAC1_BASE (0x20112000U)
-void ENC_write_phy_reg(uint8_t phyaddr, uint8_t regaddr, uint16_t regval);
-uint16_t ENC_read_phy_reg(uint8_t phyaddr, uint8_t regaddr);
-void ENC_sleep_ms(unsigned int count);
-void ENC_wait_for_mdio_idle(void);
+void ENC_init_mdio(MAC_TypeDef *mac_base);
+void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base);
+void ENC_write_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval);
+uint16_t ENC_read_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr);
 
-#include "mss_sysreg.h"
-bool HSS_BoardInit(void)
+void ENC_init_mdio(MAC_TypeDef *mac_base)
 {
-    RunInitFunctions(ARRAY_SIZE(boardInitFunctions), boardInitFunctions);
-
-    return true;
+    mac_base->NETWORK_CONTROL = GEM_MAN_PORT_EN | GEM_CLEAR_ALL_STATS_REGS;
 }
 
-// TODO: there must be a better solution
-void ENC_sleep_ms(unsigned int count)
+void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base)
 {
-    const uint64_t ms_count = 16493;
-    volatile int64_t sleep = 0;
-    volatile int64_t end = count * ms_count;
-    do
-    {
-        sleep++;
-    } while(sleep < end);
-}
-
-void ENC_wait_for_mdio_idle(void)
-{
-    MAC_TypeDef *mac_base = (MAC_TypeDef*)MSS_MAC1_BASE;
     do
     {
         volatile int32_t ix;
@@ -98,14 +81,9 @@ void ENC_wait_for_mdio_idle(void)
     } while(0U == (mac_base->NETWORK_STATUS & GEM_MAN_DONE));
 }
 
-void ENC_write_phy_reg(uint8_t phyaddr, uint8_t regaddr, uint16_t regval)
+void ENC_write_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval)
 {
-    MAC_TypeDef *mac_base = (MAC_TypeDef*)MSS_MAC1_BASE;
-    psr_t lev = HAL_disable_interrupts();
-
-    mac_base->NETWORK_CONTROL = GEM_MAN_PORT_EN | GEM_CLEAR_ALL_STATS_REGS;
-
-    ENC_wait_for_mdio_idle();
+    ENC_wait_for_mdio_idle(mac_base);
 
     volatile uint32_t phy_op;
     phy_op = GEM_WRITE1 | (GEM_PHY_OP_CL22_WRITE << GEM_OPERATION_SHIFT) | (((uint32_t)(2UL)) << GEM_WRITE10_SHIFT) | (uint32_t)regval;
@@ -113,17 +91,11 @@ void ENC_write_phy_reg(uint8_t phyaddr, uint8_t regaddr, uint16_t regval)
     phy_op |= ((uint32_t)regaddr << GEM_REGISTER_ADDRESS_SHIFT) & GEM_REGISTER_ADDRESS;
 
     mac_base->PHY_MANAGEMENT = phy_op;
-    HAL_restore_interrupts(lev);
 }
 
-uint16_t ENC_read_phy_reg(uint8_t phyaddr, uint8_t regaddr)
+uint16_t ENC_read_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr)
 {
-    MAC_TypeDef *mac_base = (MAC_TypeDef*)MSS_MAC1_BASE;
-
-    psr_t lev = HAL_disable_interrupts();
-
-    mac_base->NETWORK_CONTROL = GEM_MAN_PORT_EN | GEM_CLEAR_ALL_STATS_REGS;
-    ENC_wait_for_mdio_idle();
+    ENC_wait_for_mdio_idle(mac_base);
 
     volatile uint32_t phy_op;
     phy_op = GEM_WRITE1 | (GEM_PHY_OP_CL22_READ << GEM_OPERATION_SHIFT) | (((uint32_t)(2UL)) << GEM_WRITE10_SHIFT);
@@ -131,12 +103,18 @@ uint16_t ENC_read_phy_reg(uint8_t phyaddr, uint8_t regaddr)
     phy_op |= ((uint32_t)regaddr << GEM_REGISTER_ADDRESS_SHIFT) & GEM_REGISTER_ADDRESS;
 
     mac_base->PHY_MANAGEMENT = phy_op;
-    ENC_wait_for_mdio_idle();
+    ENC_wait_for_mdio_idle(mac_base);
 
     phy_op = mac_base->PHY_MANAGEMENT;
-    HAL_restore_interrupts(lev);
 
     return((uint16_t)phy_op);
+}
+
+bool HSS_BoardInit(void)
+{
+    RunInitFunctions(ARRAY_SIZE(boardInitFunctions), boardInitFunctions);
+
+    return true;
 }
 
 bool HSS_BoardLateInit(void)
@@ -147,15 +125,25 @@ bool HSS_BoardLateInit(void)
     MSS_GPIO_set_output(GPIO0_LO, MSS_GPIO_12, 1);
 
     // Wait until both Ethernet PHYs are ready
-    ENC_sleep_ms(10);
+    HSS_SpinDelay_MilliSecs(1000);
+
+    MAC_TypeDef *mac_base = (MAC_TypeDef*)MSS_MAC1_BASE;
+    ENC_init_mdio(mac_base);
 
     // Configure pin INT#/PWDN# of both DP83867IS Ethernet PHY for interrupt functionality
-    ENC_write_phy_reg(0, 0x1e, 0x80);
-    ENC_write_phy_reg(3, 0x1e, 0x80);
+    ENC_write_phy_reg(mac_base, 0, 0x1e, 0x80);
+    ENC_write_phy_reg(mac_base, 3, 0x1e, 0x80);
 
     // Clear power down flag
-    ENC_write_phy_reg(0, 0x0, 0x1140);
-    ENC_write_phy_reg(3, 0x0, 0x1140);
+    ENC_write_phy_reg(mac_base, 0, 0x0, 0x1140);
+    ENC_write_phy_reg(mac_base, 3, 0x0, 0x1140);
+
+    // Debug print
+    uint16_t reg = ENC_read_phy_reg(mac_base, 0x0, 0x0);
+    mHSS_DEBUG_PRINTF(LOG_WARN, "Phy config 0 = 0x%x\n", reg);
+
+    reg = ENC_read_phy_reg(mac_base, 0x3, 0x0);
+    mHSS_DEBUG_PRINTF(LOG_WARN, "Phy config 3 = 0x%x\n", reg);
 
     return true;
 }

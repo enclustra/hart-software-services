@@ -62,6 +62,7 @@ const struct InitFunction /*@null@*/ boardInitFunctions[] = {
 /****************************************************************************/
 
 #define MSS_MAC1_BASE (0x20112000U)
+
 void ENC_init_mdio(MAC_TypeDef *mac_base);
 void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base);
 void ENC_write_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval);
@@ -119,13 +120,14 @@ bool HSS_BoardInit(void)
 
 bool HSS_BoardLateInit(void)
 {
-    // Reset peripherals
+    // Reset peripherals (this generates a 200us low pulse)
     MSS_GPIO_init(GPIO0_LO);
+    MSS_GPIO_set_output(GPIO0_LO, MSS_GPIO_12, 0);
     MSS_GPIO_config(GPIO0_LO, MSS_GPIO_12, MSS_GPIO_OUTPUT_MODE);
     MSS_GPIO_set_output(GPIO0_LO, MSS_GPIO_12, 1);
 
-    // Wait until both Ethernet PHYs are ready
-    HSS_SpinDelay_MilliSecs(1000);
+    // Wait 200ms before accessing MDIO bus
+    HSS_SpinDelay_MilliSecs(200);
 
     MAC_TypeDef *mac_base = (MAC_TypeDef*)MSS_MAC1_BASE;
     ENC_init_mdio(mac_base);

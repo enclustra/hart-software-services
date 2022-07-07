@@ -120,14 +120,13 @@ bool HSS_BoardInit(void)
 
 bool HSS_BoardLateInit(void)
 {
-    // Reset peripherals (this generates a 200us low pulse)
+    // Make sure peripheral reset is released
     MSS_GPIO_init(GPIO0_LO);
-    MSS_GPIO_set_output(GPIO0_LO, MSS_GPIO_12, 0);
-    MSS_GPIO_config(GPIO0_LO, MSS_GPIO_12, MSS_GPIO_OUTPUT_MODE);
     MSS_GPIO_set_output(GPIO0_LO, MSS_GPIO_12, 1);
+    MSS_GPIO_config(GPIO0_LO, MSS_GPIO_12, MSS_GPIO_OUTPUT_MODE);
 
-    // Wait 200ms before accessing MDIO bus
-    HSS_SpinDelay_MilliSecs(200);
+    // DP83867IS requires 200ms between reset and MDIO access
+    HSS_SpinDelay_MilliSecs(250);
 
     MAC_TypeDef *mac_base = (MAC_TypeDef*)MSS_MAC1_BASE;
     ENC_init_mdio(mac_base);
@@ -140,12 +139,17 @@ bool HSS_BoardLateInit(void)
     ENC_write_phy_reg(mac_base, 0, 0x0, 0x1140);
     ENC_write_phy_reg(mac_base, 3, 0x0, 0x1140);
 
-    // Debug print
+    // Check if PHY configuration was successful
     uint16_t reg = ENC_read_phy_reg(mac_base, 0x0, 0x0);
-    mHSS_DEBUG_PRINTF(LOG_WARN, "Phy config 0 = 0x%x\n", reg);
-
+    if (reg != 0x1140)
+    {
+        mHSS_DEBUG_PRINTF(LOG_WARN, "Phy configuration error\n");
+    }
     reg = ENC_read_phy_reg(mac_base, 0x3, 0x0);
-    mHSS_DEBUG_PRINTF(LOG_WARN, "Phy config 3 = 0x%x\n", reg);
+    if (reg != 0x1140)
+    {
+        mHSS_DEBUG_PRINTF(LOG_WARN, "Phy configuration error\n");
+    }
 
     return true;
 }

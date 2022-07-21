@@ -336,7 +336,7 @@ uint8_t mss_nwc_init_ddr(void)
 
     uint32_t  ddr_status;
     ddr_status = ddr_state_machine(DDR_SS__INIT);
-    next_time = rdcycle() + DELAY_CYCLES_100MS;
+    next_time = 0U;
     while((ddr_status & DDR_SETUP_DONE) != DDR_SETUP_DONE)
     {
         ddr_status = ddr_state_machine(DDR_SS_MONITOR);

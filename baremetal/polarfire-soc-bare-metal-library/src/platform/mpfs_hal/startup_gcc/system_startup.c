@@ -77,6 +77,7 @@ __attribute__((weak)) int main_first_hart(HLS_DATA* hls)
         (void)init_mem_protection_unit();
         (void)init_pmp((uint8_t)MPFS_HAL_FIRST_HART);
         (void)mss_set_apb_bus_cr((uint32_t)LIBERO_SETTING_APBBUS_CR);
+        (void)mss_set_gpio_interrupt_fab_cr((uint32_t)LIBERO_SETTING_GPIO_INTERRUPT_FAB_CR);
 #endif  /* MPFS_HAL_HW_CONFIG */
         /*
          * Initialise NWC

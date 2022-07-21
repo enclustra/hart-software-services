@@ -582,6 +582,23 @@ __attribute__((weak)) uint8_t switch_external_mux(MSS_IO_OPTIONS option)
 }
 
 
+/***************************************************************************//**
+ * See mss_io_config.h for details of how to use this function.
+ */
+__attribute__((weak)) void mss_set_gpio_interrupt_fab_cr(uint32_t reg_value)
+{
+    SYSREG->GPIO_INTERRUPT_FAB_CR = reg_value;
+}
+
+/***************************************************************************//**
+ * See mss_peripherals.h for details of how to use this function.
+ */
+__attribute__((weak)) uint32_t mss_get_gpio_interrupt_fab_cr(void)
+{
+    return (SYSREG->GPIO_INTERRUPT_FAB_CR);
+}
+
+
 #ifdef EXAMPLE_MSSIO_APP_CODE
 #include "drivers/mss_gpio/mss_gpio.h"
 /**

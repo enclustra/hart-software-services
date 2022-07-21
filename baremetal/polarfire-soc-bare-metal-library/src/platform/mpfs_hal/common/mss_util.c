@@ -77,7 +77,7 @@ void __enable_local_irq(uint8_t local_interrupt)
     ASSERT(local_interrupt > (int8_t)0);
     ASSERT( (local_interrupt <= LOCAL_INT_MAX));
 
-    uint8_t mhart_id = read_csr(mhartid);
+    uint8_t mhart_id = (uint8_t)read_csr(mhartid);
 
     if((local_interrupt > (int8_t)0) && (local_interrupt <= LOCAL_INT_MAX))
     {

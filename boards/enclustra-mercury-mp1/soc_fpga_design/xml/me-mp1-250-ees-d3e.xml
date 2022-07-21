@@ -4,7 +4,7 @@
       <design_name>MPFS250T_ES</design_name>
       <mpfs_part_no>MPFS250T_ES</mpfs_part_no>
       <mpfs_package>FCG1152</mpfs_package>
-      <creation_date_time>07-21-2022_13:01:32</creation_date_time>
+      <creation_date_time>07-21-2022_13:54:43</creation_date_time>
       <xml_format_version>0.5.9</xml_format_version>
     </design_information>
     <mss_memory_map>
@@ -1528,28 +1528,28 @@
             <field Type="RW" name="RESERVED2" offset="20" width="12">0x0</field>
           </register>
           <register address="0x00000234" description="IO electrical configuration for MSSIO pad" name="ALT_MSSIO_BANK4_IO_CFG_0_1_CR">
-            <field Type="RW" name="IO_CFG_0" offset="0" width="16">0x0928</field>
-            <field Type="RW" name="IO_CFG_1" offset="16" width="16">0x0928</field>
+            <field Type="RW" name="IO_CFG_0" offset="0" width="16">0x0938</field>
+            <field Type="RW" name="IO_CFG_1" offset="16" width="16">0x0938</field>
           </register>
           <register address="0x00000238" description="IO electrical configuration for MSSIO pad" name="ALT_MSSIO_BANK4_IO_CFG_2_3_CR">
-            <field Type="RW" name="IO_CFG_2" offset="0" width="16">0x0928</field>
-            <field Type="RW" name="IO_CFG_3" offset="16" width="16">0x0928</field>
+            <field Type="RW" name="IO_CFG_2" offset="0" width="16">0x0938</field>
+            <field Type="RW" name="IO_CFG_3" offset="16" width="16">0x0938</field>
           </register>
           <register address="0x0000023C" description="IO electrical configuration for MSSIO pad" name="ALT_MSSIO_BANK4_IO_CFG_4_5_CR">
-            <field Type="RW" name="IO_CFG_4" offset="0" width="16">0x0928</field>
-            <field Type="RW" name="IO_CFG_5" offset="16" width="16">0x0928</field>
+            <field Type="RW" name="IO_CFG_4" offset="0" width="16">0x0938</field>
+            <field Type="RW" name="IO_CFG_5" offset="16" width="16">0x0938</field>
           </register>
           <register address="0x00000240" description="IO electrical configuration for MSSIO pad" name="ALT_MSSIO_BANK4_IO_CFG_6_7_CR">
             <field Type="RW" name="IO_CFG_6" offset="0" width="16">0x0928</field>
-            <field Type="RW" name="IO_CFG_7" offset="16" width="16">0x0928</field>
+            <field Type="RW" name="IO_CFG_7" offset="16" width="16">0x0938</field>
           </register>
           <register address="0x00000244" description="IO electrical configuration for MSSIO pad" name="ALT_MSSIO_BANK4_IO_CFG_8_9_CR">
-            <field Type="RW" name="IO_CFG_8" offset="0" width="16">0x0928</field>
-            <field Type="RW" name="IO_CFG_9" offset="16" width="16">0x0928</field>
+            <field Type="RW" name="IO_CFG_8" offset="0" width="16">0x0938</field>
+            <field Type="RW" name="IO_CFG_9" offset="16" width="16">0x0938</field>
           </register>
           <register address="0x00000248" description="IO electrical configuration for MSSIO pad" name="ALT_MSSIO_BANK4_IO_CFG_10_11_CR">
-            <field Type="RW" name="IO_CFG_10" offset="0" width="16">0x0928</field>
-            <field Type="RW" name="IO_CFG_11" offset="16" width="16">0x0928</field>
+            <field Type="RW" name="IO_CFG_10" offset="0" width="16">0x0938</field>
+            <field Type="RW" name="IO_CFG_11" offset="16" width="16">0x0938</field>
           </register>
           <register address="0x0000024C" description="IO electrical configuration for MSSIO pad" name="ALT_MSSIO_BANK4_IO_CFG_12_13_CR">
             <field Type="RW" name="IO_CFG_12" offset="0" width="16">0x0928</field>

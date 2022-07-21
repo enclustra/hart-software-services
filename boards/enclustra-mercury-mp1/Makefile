@@ -27,7 +27,7 @@
 # Defines target-specific build-rules variables, extra sources and include paths
 #
 
-$(info me-mp1-250-ees-d3e selected)
+$(info Enclustra Mercury MP1 selected)
 
 BINDIR=Default
 TARGET-l2scratch=hss-l2scratch.elf
@@ -39,7 +39,7 @@ LINKER_SCRIPT-l2scratch=boards/${BOARD}/hss-l2scratch.ld
 
 CONFIG_PLATFORM_MPFS=y
 PLATFORM_CFLAGS += -DCONFIG_PLATFORM_MPFS=1 -DCONFIG_MODULE_ENCLUSTRA_MP1=1
-BOARD_DIR=boards/me-mp1-250-ees-d3e
+BOARD_DIR=boards/enclustra-mercury-mp1
 
 INCLUDES += \
 	-I$(BOARD_DIR)/mpfs_hal_config/\

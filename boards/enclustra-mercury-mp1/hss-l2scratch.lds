@@ -258,7 +258,7 @@ SECTIONS
     .data.payload : ALIGN(16) 
     {
       _payload_start = .;
-      KEEP(boards/me-mp1-250-ees-d3e/payload.o(.*))
+      KEEP(boards/enclustra-mercury-mp1/payload.o(.*))
       _payload_end = .;
     }
 #endif

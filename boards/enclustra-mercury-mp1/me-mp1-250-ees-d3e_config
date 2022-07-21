@@ -6,7 +6,7 @@
 #
 # Enclustra MP1 Design Configuration Options
 #
-CONFIG_SOC_FPGA_DESIGN_XML="boards/me-mp1-250-ees-d3e/soc_fpga_design/xml/me-mp1-250-ees-d3e.xml"
+CONFIG_SOC_FPGA_DESIGN_XML="boards/enclustra-mercury-mp1/soc_fpga_design/xml/me-mp1-250-ees-d3e.xml"
 # end of Enclustra MP1 Design Configuration Options
 # end of Board/Design Configuration Options
 

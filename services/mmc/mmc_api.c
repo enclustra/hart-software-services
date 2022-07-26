@@ -157,7 +157,7 @@ static bool mmc_init_emmc(void)
         .data_bus_width = MSS_MMC_DATA_WIDTH_8BIT,
 #if defined(CONFIG_SERVICE_MMC_BUS_VOLTAGE_1V8)
         .bus_voltage = MSS_MMC_1_8V_BUS_VOLTAGE,
-#ifdef CONFIG_MODULE_M100PFS
+#if defined(CONFIG_MODULE_M100PFS) || defined(CONFIG_MODULE_ENCLUSTRA_MP1)
         .clk_rate = MSS_MMC_CLOCK_50MHZ,
         .bus_speed_mode = MSS_MMC_MODE_SDR,
 #else

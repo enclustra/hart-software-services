@@ -15,6 +15,7 @@
 #include "config.h"
 #include "hss_types.h"
 #include <assert.h>
+#include <string.h>
 
 #include "hss_debug.h"
 #include "mss_ethernet_registers.h"
@@ -24,6 +25,8 @@
 #include "hss_state_machine.h"
 #include "ssmb_ipi.h"
 #include "hss_registry.h"
+#include "ddr_service.h"
+#include "ddr/hw_ddrc.h"
 
 /******************************************************************************************************/
 /*!
@@ -44,7 +47,6 @@ const struct InitFunction /*@null@*/ boardInitFunctions[] = {
     { "HSS_Setup_BusErrorUnit", HSS_Setup_BusErrorUnit, false, false },
     { "HSS_Setup_MPU",          HSS_Setup_MPU,          false, false },
     { "HSS_DDRInit",            HSS_DDRInit,            false, false },
-    { "HSS_ZeroDDR",            HSS_ZeroDDR,            false, false },
 #ifdef CONFIG_USE_PCIE
     { "HSS_PCIeInit",           HSS_PCIeInit,           false, false },
 #endif
@@ -67,6 +69,7 @@ void ENC_init_mdio(MAC_TypeDef *mac_base);
 void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base);
 void ENC_write_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval);
 uint16_t ENC_read_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr);
+void ENC_InitializeMemory(uint64_t *addr, uint32_t size);
 
 void ENC_init_mdio(MAC_TypeDef *mac_base)
 {
@@ -118,6 +121,12 @@ bool HSS_BoardInit(void)
     return true;
 }
 
+void ENC_InitializeMemory(uint64_t *addr, uint32_t size)
+{
+    mHSS_FANCY_PRINTF(LOG_NORMAL, "Initializing memory offset 0x%x%08x size 0x%x\n", (uint64_t)addr >> 32, addr, size);
+    memset(addr, 0, size);
+}
+
 bool HSS_BoardLateInit(void)
 {
     // Make sure peripheral reset is released
@@ -150,6 +159,13 @@ bool HSS_BoardLateInit(void)
     {
         mHSS_DEBUG_PRINTF(LOG_WARN, "Phy configuration error\n");
     }
+
+    // With ECC enabled, the DDR memory needs to be initialized to prevent from
+    // bus errors caused by reading uninitialized memory
+#if LIBERO_SETTING_CFG_ECC_CORRECTION_EN == 1
+    ENC_InitializeMemory((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize());
+    ENC_InitializeMemory((uint64_t *)HSS_DDRHi_GetStart(), HSS_DDRHi_GetSize());
+#endif
 
     return true;
 }

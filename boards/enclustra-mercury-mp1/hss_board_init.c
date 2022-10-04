@@ -70,6 +70,8 @@ void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base);
 void ENC_write_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval);
 uint16_t ENC_read_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr);
 void ENC_InitializeMemory(uint64_t *addr, uint32_t size);
+void ENC_InitEthPhy(void);
+void ENC_ReleaseReset(void);
 
 void ENC_init_mdio(MAC_TypeDef *mac_base)
 {
@@ -127,38 +129,56 @@ void ENC_InitializeMemory(uint64_t *addr, uint32_t size)
     memset(addr, 0, size);
 }
 
-bool HSS_BoardLateInit(void)
+void ENC_ReleaseReset(void)
 {
-    // Make sure peripheral reset is released
     MSS_GPIO_init(GPIO0_LO);
     MSS_GPIO_set_output(GPIO0_LO, MSS_GPIO_12, 1);
     MSS_GPIO_config(GPIO0_LO, MSS_GPIO_12, MSS_GPIO_OUTPUT_MODE);
+}
 
-    // DP83867IS requires 200ms between reset and MDIO access
-    HSS_SpinDelay_MilliSecs(250);
+void ENC_InitEthPhy(void)
+{
+    const uint8_t MDIO_CONTROL = 0x00;
+    const uint8_t MDIO_PHY_ID_MSB = 0x02;
+    const uint8_t MDIO_PHY_ID_LSB = 0x03;
+    const uint8_t MDIO_CONFIG3 = 0x1e;
+
+    const uint32_t DP83867_ID = 0x2000A231;
+    const uint16_t CONTROL_POWER_DOWN_MASK = 0x0800;
+    const uint16_t CONFIG3_IRQ_EN_MASK = 0x0080;
 
     MAC_TypeDef *mac_base = (MAC_TypeDef*)MSS_MAC1_BASE;
     ENC_init_mdio(mac_base);
 
-    // Configure pin INT#/PWDN# of both DP83867IS Ethernet PHY for interrupt functionality
-    ENC_write_phy_reg(mac_base, 0, 0x1e, 0x80);
-    ENC_write_phy_reg(mac_base, 3, 0x1e, 0x80);
-
-    // Clear power down flag
-    ENC_write_phy_reg(mac_base, 0, 0x0, 0x1140);
-    ENC_write_phy_reg(mac_base, 3, 0x0, 0x1140);
-
-    // Check if PHY configuration was successful
-    uint16_t reg = ENC_read_phy_reg(mac_base, 0x0, 0x0);
-    if (reg != 0x1140)
+    for (uint8_t phyAddr = 0; phyAddr < 32; phyAddr ++)
     {
-        mHSS_DEBUG_PRINTF(LOG_WARN, "Phy configuration error\n");
+        // Read ID of PHY and check if it matches DP83867
+        uint16_t idMsb = ENC_read_phy_reg(mac_base, phyAddr, MDIO_PHY_ID_MSB);
+        uint16_t idLsb = ENC_read_phy_reg(mac_base, phyAddr, MDIO_PHY_ID_LSB);
+        uint32_t id = ((uint32_t)idMsb << 16) | idLsb;
+        if (id == DP83867_ID)
+        {
+            mHSS_DEBUG_PRINTF(LOG_WARN, "Phy found at address %i\n", phyAddr);
+
+            // Configure pin INT#/PWDN# for interrupt functionality
+            ENC_write_phy_reg(mac_base, phyAddr, MDIO_CONFIG3, CONFIG3_IRQ_EN_MASK);
+
+            // Clear power down flag
+            uint16_t reg = ENC_read_phy_reg(mac_base, phyAddr, MDIO_CONTROL);
+            ENC_write_phy_reg(mac_base, phyAddr, MDIO_CONTROL, reg & ~CONTROL_POWER_DOWN_MASK);
+        }
     }
-    reg = ENC_read_phy_reg(mac_base, 0x3, 0x0);
-    if (reg != 0x1140)
-    {
-        mHSS_DEBUG_PRINTF(LOG_WARN, "Phy configuration error\n");
-    }
+}
+
+bool HSS_BoardLateInit(void)
+{
+    // Make sure peripheral reset is released
+    ENC_ReleaseReset();
+
+    // DP83867 requires minimum 200ms between reset and MDIO access
+    HSS_SpinDelay_MilliSecs(250);
+
+    ENC_InitEthPhy();
 
     // With ECC enabled, the DDR memory needs to be initialized to prevent from
     // bus errors caused by reading uninitialized memory

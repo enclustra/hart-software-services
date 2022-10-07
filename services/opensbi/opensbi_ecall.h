@@ -2,7 +2,7 @@
 #define OPENSBI_ECALL_H
 
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -51,6 +51,10 @@ extern "C" {
 #define SBI_EXT_IHC_CTX_INIT   0x00
 #define SBI_EXT_IHC_SEND       0x01
 #define SBI_EXT_IHC_RECEIVE    0x02
+
+#define SBI_EXT_RPROC_STATE    0x03
+#define SBI_EXT_RPROC_START    0x04
+#define SBI_EXT_RPROC_STOP     0x05
 
 #define SBI_EXT_HSS_REBOOT     0x10
 

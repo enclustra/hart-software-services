@@ -21,13 +21,11 @@
 #include <assert.h>
 #include "csr_helper.h"
 
-#define read_csr csr_read
-#define set_csr  csr_write
 #include "mss_plic.h"
 #include "mpfs_reg_map.h"
 
 // Register Defintions
-#define PCIE_IRQn				(FABRIC_F2H_1_PLIC)
+#define PCIE_IRQn				(PLIC_F2M_1_INT_OFFSET)
 
 //
 // Will constrain base addr of PCIe to 0x43000000u

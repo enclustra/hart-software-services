@@ -156,6 +156,7 @@ static void wdog_monitoring_handler(struct StateMachine * const pMyMachine)
         // watchdog timer has triggered for a monitored hart..
         mHSS_DEBUG_PRINTF(LOG_ERROR, "Watchdog has triggered - %02x\n", status);
 
+#if IS_ENABLED(CONFIG_SERVICE_BOOT)
         if (hartBitmask.s.u54_1) {
             HSS_Boot_RestartCore(HSS_HART_U54_1);
             wdogInitTime[HSS_HART_U54_1] = HSS_GetTime();
@@ -175,6 +176,7 @@ static void wdog_monitoring_handler(struct StateMachine * const pMyMachine)
             HSS_Boot_RestartCore(HSS_HART_U54_4);
             wdogInitTime[HSS_HART_U54_4] = HSS_GetTime();
         }
+#endif
     }
 }
 
@@ -183,7 +185,7 @@ static void wdog_monitoring_handler(struct StateMachine * const pMyMachine)
 
 void HSS_Wdog_MonitorHart(enum HSSHartId target)
 {
-    mHSS_DEBUG_PRINTF(LOG_NORMAL, "monitoring ");
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "wdog_service monitoring ");
 
     switch (target) {
     case HSS_HART_U54_1:
@@ -241,6 +243,19 @@ void HSS_Wdog_Reboot(enum HSSHartId target)
 
     case HSS_HART_U54_4:
         MSS_WD_force_reset(MSS_WDOG4_LO);
+        break;
+
+    case HSS_HART_ALL:
+        MSS_WD_force_reset(MSS_WDOG4_LO);
+        MSS_WD_force_reset(MSS_WDOG3_LO);
+        MSS_WD_force_reset(MSS_WDOG2_LO);
+        MSS_WD_force_reset(MSS_WDOG1_LO);
+        MSS_WD_force_reset(MSS_WDOG0_LO);
+
+        while (1) {
+            ;
+        }
+
         break;
 
     default:

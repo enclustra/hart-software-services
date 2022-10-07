@@ -89,7 +89,8 @@ _start:
 	la	s8, STACK_SIZE_PER_HART
         csrr	a0, CSR_MHARTID
 
-        la	tp, __stack_bottom + 63
+        la	tp, __stack_bottom
+        add	tp, tp, 63
         and	tp, tp, -64
         li	a1, 1
 
@@ -130,6 +131,20 @@ _start:
 #define MSS_UART_NO_PARITY       (0x00)
 #define MSS_UART_ONE_STOP_BIT    (0x00)
 	li	a2, MSS_UART_DATA_8_BITS | MSS_UART_NO_PARITY | MSS_UART_ONE_STOP_BIT
+
+	la	a0, g_mss_uart1_lo
+	call	MSS_UART_init
+
+	la	a0, g_mss_uart2_lo
+	call	MSS_UART_init
+
+	la	a0, g_mss_uart3_lo
+	call	MSS_UART_init
+
+	la	a0, g_mss_uart4_lo
+	call	MSS_UART_init
+
+	la	a0, g_mss_uart0_lo
 	call	MSS_UART_init
 
 	la	a1, decomp_msg
@@ -349,7 +364,7 @@ config_copy:
 	// NOTE: we need to check if we are debugging from LIM,if so do not initialize
 	//
 	la 	a4, __l2lim_start
-	la	a5, __l2lim_heap_end
+	la	a5, __l2lim_end
         j	1f
 .clear_dtim:
         //
@@ -374,6 +389,9 @@ config_copy:
        .align 8
 decomp_msg:
        .ascii "\033[2J\033[H"
+#if defined(CONFIG_COLOR_OUTPUT)
+       .ascii "\033[0m"
+#endif
        .asciz "\r\nHSS: decompressing from eNVM to L2 Scratch ... \0"
 passed_msg:
        .asciz "Passed\r\n"

@@ -63,7 +63,7 @@ $(BOARD_DIR)/payload.o: $(BOARD_DIR)/payload.bin
 
 ################################################################################################
 #
-# Extra hardware dependency rules for YMODEM
+# Extra hardware dependency rules for QSPI
 #
 
 INCLUDES += \
@@ -125,7 +125,7 @@ SOC_CONFIG_FILES =  \
 
 config.h: $(SOC_CONFIG_FILES)
 $(SOC_CONFIG_FILES): $(subst $\",,$(CONFIG_SOC_FPGA_DESIGN_XML))
-	@$(ECHO) " CFGGEN    $<";
+	@$(ECHO) " MPFSCFGGEN    $<";
 	$(PYTHON) tools/polarfire-soc-configuration-generator/mpfs_configuration_generator.py $< $(BOARD_DIR)
 
 $(RISCV_TARGET): $(SOC_CONFIG_FILES)

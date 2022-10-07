@@ -2,7 +2,7 @@
 #define OPENSBI_IHC_SERVICE_H
 
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -45,8 +45,8 @@ struct mpfs_ihc_msg {
 };
 
 struct ihc_sbi_rx_msg {
-    uint8_t irq_type;
     struct mpfs_ihc_msg ihc_msg;
+    uint8_t irq_type;
 };
 
 int sbi_ecall_ihc_handler(unsigned long extid, unsigned long funcid,

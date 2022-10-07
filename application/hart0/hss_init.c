@@ -46,6 +46,7 @@
 #include "mpfs_hal_version.h"
 #include "miv_ihc_version.h"
 #include "mss_sys_services.h"
+#include "mss_sysreg.h"
 
 /**
  * \brief Main Initialization Function
@@ -99,8 +100,6 @@ extern const uint64_t hss_init_ddr_end;
 #if IS_ENABLED(CONFIG_PLATFORM_MPFS)
 #  include "mss_sysreg.h"
 #endif
-
-#define CHUNK_SIZE             0x2000u
 
 bool HSS_ZeroDDR(void)
 {
@@ -188,28 +187,39 @@ void HSS_PrintToolVersions(void)
 bool HSS_E51_Banner(void)
 {
 #ifndef VENDOR_STRING
-    define VENDOR_STRING ""
+#    define VENDOR_STRING ""
 #endif
+
+#if !IS_ENABLED(CONFIG_SKIP_DDR)
+    extern const char DDR_DRIVER_VERSION[];
+#endif
+
     mHSS_FANCY_PRINTF(LOG_STATUS,
         "PolarFire(R) SoC Hart Software Services (HSS) - version %d.%d.%d" VENDOR_STRING "\n"
         "MPFS HAL version %d.%d.%d"
+#if !IS_ENABLED(CONFIG_SKIP_DDR)
+        " / DDR Driver version %s"
+#endif
 #if IS_ENABLED(CONFIG_USE_IHC)
 	" / Mi-V IHC version %d.%d.%d"
 #endif
+        " / BOARD=" STR(BOARD)
         "\n"
-        "(c) Copyright 2017-2022 Microchip FPGA Embedded Systems Solutions.\n\n",
+        "(c) Copyright 2017-2022 Microchip FPGA Embedded Systems Solutions.\n\n"
+        "incorporating OpenSBI - version %d.%d\n"
+        "(c) Copyright 2019-2022 Western Digital Corporation.\n\n",
         HSS_VERSION_MAJOR, HSS_VERSION_MINOR, HSS_VERSION_PATCH,
         MPFS_HAL_VERSION_MAJOR, MPFS_HAL_VERSION_MINOR, MPFS_HAL_VERSION_PATCH
+#if !IS_ENABLED(CONFIG_SKIP_DDR)
+        , DDR_DRIVER_VERSION
+#endif
 #if IS_ENABLED(CONFIG_USE_IHC)
 	// add the comma separator here if adding IHC version information to prevent a
 	// compile error on the macro if CONFIG_USE_IHC is not enabled
 	, MIV_IHC_VERSION_MAJOR, MIV_IHC_VERSION_MINOR, MIV_IHC_VERSION_PATCH
 #endif
-    )
-
-    mHSS_FANCY_PRINTF(LOG_STATUS, "incorporating OpenSBI - version %d.%d\n"
-        "(c) Copyright 2019-2022 Western Digital Corporation.\n\n",
-        OPENSBI_VERSION_MAJOR, OPENSBI_VERSION_MINOR);
+        , OPENSBI_VERSION_MAJOR, OPENSBI_VERSION_MINOR
+    );
 
 #if IS_ENABLED(CONFIG_CC_USE_GNU_BUILD_ID)
     HSS_PrintBuildId();
@@ -222,6 +232,43 @@ bool HSS_E51_Banner(void)
     if (&_hss_start == &__l2_start) {
         mHSS_FANCY_PRINTF(LOG_WARN, "NOTICE: Running from L2 Scratchpad\n\n");
     }
+
+    return true;
+}
+
+
+bool HSS_ResetReasonInit(void)
+{
+#if IS_ENABLED(CONFIG_DEBUG_RESET_REASON)
+    uint8_t reset_reason = SYSREG->RESET_SR;
+
+    const char* const reset_reason_string[] = {
+        [ RESET_SR_SCB_PERIPH_RESET_OFFSET ]	= "SCB peripheral reset signal",
+        [ RESET_SR_SCB_MSS_RESET_OFFSET ]	= "SCB MSS reset register",
+        [ RESET_SR_SCB_CPU_RESET_OFFSET ]	= "SCB CPU reset register",
+        [ RESET_SR_DEBUGER_RESET_OFFSET ]	= "Risc-V Debugger",
+        [ RESET_SR_FABRIC_RESET_OFFSET ]	= "fabric",
+        [ RESET_SR_WDOG_RESET_OFFSET ]		= "watchdog",
+        [ RESET_SR_GPIO_RESET_OFFSET ]		= "fabric asserted the GPIO reset inputs",
+        [ RESET_SR_SCB_BUS_RESET_OFFSET ]	= "SCB bus reset occurred",
+        [ RESET_SR_CPU_SOFT_RESET_OFFSET ]	= "CPU reset the MSS using soft reset register"
+    };
+
+    if (reset_reason) {
+        mHSS_DEBUG_PRINTF(LOG_WARN, "NOTICE: Reboot reason = 0x%x\n", reset_reason);
+
+        for (int bitPosn = 0; bitPosn <= RESET_SR_CPU_SOFT_RESET_OFFSET; bitPosn++) {
+            if (reset_reason & (1 << bitPosn)) {
+                mHSS_DEBUG_PRINTF_EX("\t=> %s\n", reset_reason_string[bitPosn]);
+            }
+        }
+    } else {
+        mHSS_DEBUG_PRINTF(LOG_WARN, "No reboot reason bits set\n");
+    }
+
+    // Clear the value to 0 so it is armed for next time
+    SYSREG->RESET_SR = 0u;
+#endif
 
     return true;
 }

@@ -96,8 +96,11 @@ enum HSSHartId {
 #define MAX_NUM_HARTS ((unsigned)HSS_HART_NUM_PEERS)
 #define mHSS_BITMASK_ALL_U54 (0x1Eu)
 
-#define BOOT_FLAG_ANCILLIARY_DATA (0x80u)
-#define BOOT_FLAG_SKIP_OPENSBI    (0x40u)
+#define BOOT_FLAG_ANCILLIARY_DATA      (0x80u)
+#define BOOT_FLAG_SKIP_OPENSBI         (0x40u)
+#define BOOT_FLAG_ALLOW_COLD_REBOOT    (0x20u)
+#define BOOT_FLAG_ALLOW_WARM_REBOOT    (0x10u)
+#define BOOT_FLAG_SKIP_AUTOBOOT        (0x08u)
 
 typedef union HSSHartBitmask {
     unsigned int uint;
@@ -131,7 +134,6 @@ struct HSS_BootChunkDesc {
 /**
  *  * \brief Descriptor for U54 Boot Zero-Initialized Chunk
  *   */
-#pragma pack(8)
 struct HSS_BootZIChunkDesc {
     enum HSSHartId owner;
     void *execAddr;
@@ -144,8 +146,6 @@ struct HSS_BootZIChunkDesc {
  * \warning The chunk table *must* be terminated with a size of 0 sentinel!
  */
 #define BOOT_IMAGE_MAX_NAME_LEN (256)
-
-#pragma pack(8)
 
 // pre crypto-signing, the BootImage format was slightly different, so to ensure
 // no CRC failures on older images, we provide a legacy structure here purely for sizing
@@ -176,7 +176,6 @@ struct HSS_Signature {
     uint8_t ecdsaSig[96]; // SECP384R1
 };
 
-#pragma pack(8)
 struct HSS_BootImage {
     uint32_t magic;
     uint32_t version;
@@ -203,7 +202,6 @@ struct HSS_BootImage {
  * \brief Compressed Image Structure
  *
  */
-#pragma pack(8)
 struct HSS_CompressedImage {
     uint32_t magic;
     uint32_t version;

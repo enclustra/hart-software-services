@@ -66,17 +66,30 @@ $(BOARD_DIR)/payload.o: $(BOARD_DIR)/payload.bin
 
 ################################################################################################
 #
-# Extra hardware dependency rules for YMODEM
+# Extra hardware dependency rules for QSPI
 #
 
 INCLUDES += \
 	-Ibaremetal/ \
+
+ifdef CONFIG_SERVICE_QSPI_WINBOND_W25N01GV
+INCLUDES += \
 	-Ibaremetal/drivers/winbond_w25n01gv \
 
 EXTRA_SRCS-$(CONFIG_SERVICE_QSPI) += \
 	baremetal/drivers/winbond_w25n01gv/winbond_w25n01gv.c
-
 baremetal/drivers/winbond_w25n01gv/winbond_w25n01gv.o: CFLAGS=$(CFLAGS_GCCEXT)
+endif
+
+ifdef CONFIG_SERVICE_QSPI_MICRON_MQ25T
+INCLUDES += \
+	-Ibaremetal/drivers/micron_mt25q \
+
+EXTRA_SRCS-$(CONFIG_SERVICE_QSPI) += \
+	baremetal/drivers/micron_mt25q/micron_mt25q.c
+baremetal/drivers/micron_mt25q/micron_mt25q.o: CFLAGS=$(CFLAGS_GCCEXT)
+endif
+
 
 ################################################################################################
 #
@@ -131,7 +144,7 @@ SOC_CONFIG_FILES =  \
 
 config.h: $(SOC_CONFIG_FILES)
 $(SOC_CONFIG_FILES): $(subst $\",,$(CONFIG_SOC_FPGA_DESIGN_XML))
-	@$(ECHO) " CFGGEN    $<";
+	@$(ECHO) " MPFSCFGGEN    $<";
 	$(PYTHON) tools/polarfire-soc-configuration-generator/mpfs_configuration_generator.py $< $(BOARD_DIR)
 
 $(RISCV_TARGET): $(SOC_CONFIG_FILES)

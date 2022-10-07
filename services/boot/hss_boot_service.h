@@ -49,6 +49,7 @@ enum IPIStatusCode HSS_Boot_PMPSetupHandler(TxId_t transaction_id, enum HSSHartI
 bool HSS_Boot_PMPSetupRequest(enum HSSHartId target, uint32_t *indexOut);
 bool HSS_Boot_SBISetupRequest(enum HSSHartId target, uint32_t *indexOut);
 enum IPIStatusCode HSS_Boot_RestartCore(enum HSSHartId source);
+bool HSS_SkipBoot_IsSet(enum HSSHartId target);
 
 void HSS_Register_Boot_Image(struct HSS_BootImage *pImage);
 

@@ -29,6 +29,7 @@
 #
 
 CROSS_COMPILE?=riscv64-unknown-elf-
+#CROSS_COMPILE?=riscv-none-elf-
 CC=$(CROSS_COMPILE)gcc
 RANLIB=$(CROSS_COMPILE)ranlib
 CPP=$(CROSS_COMPILE)cpp
@@ -50,6 +51,7 @@ GUICONFIG:=thirdparty/Kconfiglib/guiconfig.py
 #
 #
 PLATFORM_RISCV_ABI=lp64
+#PLATFORM_RISCV_ISA=rv64imac_zicsr_zifencei
 PLATFORM_RISCV_ISA=rv64imac
 
 CORE_CFLAGS+=$(MCMODEL) -mstrict-align
@@ -94,8 +96,8 @@ CFLAGS=-std=c11 $(CORE_CFLAGS) $(PLATFORM_CFLAGS) -Wmissing-prototypes
 CFLAGS_GCCEXT=$(CORE_CFLAGS) $(PLATFORM_CFLAGS)
 #OPT-y=-O2
 #OPT-y+=-Os -funroll-loops -fpeel-loops -fgcse-sm -fgcse-las
-#OPT-y+=-Os -fno-strict-aliasing -fwhole-program
-OPT-y+=-Os -fno-strict-aliasing
+OPT-y+=-Os -fno-strict-aliasing -fwhole-program -Wno-lto-type-mismatch
+#OPT-y+=-Os -fno-strict-aliasing
 
 ifndef CONFIG_LD_RELAX
 OPT-y+=-Wl,--no-relax
@@ -121,6 +123,9 @@ endif
 # is compile toolchain what we are expecting?
 
 ifeq ($(HOST_LINUX), true)
+  ifeq ($, $(shell which $(CC)))
+    $(error "No $(CC) in $(PATH)"
+  endif
   CC_VERSION = $(strip $(shell $(CC) -dumpversion))
   EXPECTED_CC_VERSION := 8.3.0
   ifneq ($(CC_VERSION),$(EXPECTED_CC_VERSION))

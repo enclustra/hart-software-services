@@ -23,8 +23,6 @@
 #include "hss_types.h"
 #include "ssmb_ipi.h"
 
-#define set_csr  csr_write
-#define read_csr csr_read
 #include "mss_plic.h"
 #include "miv_ihc.h"
 
@@ -63,14 +61,16 @@ bool HSS_IHCInit(void)
     const bool e51_mp_enable = false;
     const bool u54_mp_enable = true;
     const bool ack_disable   = false;
+#endif
 
     for (uint32_t remote_hartid = (uint32_t)HSS_HART_U54_1; remote_hartid <= (uint32_t)HSS_HART_U54_4; remote_hartid++) {
 
         IHC_local_context_init(remote_hartid);
+#if IS_ENABLED(CONFIG_HSS_USE_IHC)
         IHC_local_remote_config(local_hartid, remote_hartid, hss_ihc_incoming_, e51_mp_enable, ack_disable);
         IHC_local_remote_config(remote_hartid, local_hartid, u54_ihc_incoming_, u54_mp_enable, ack_disable);
-    }
 #endif
+    }
 
     return true;
 }
@@ -80,7 +80,7 @@ void HSS_IHCInit_U54(void)
 #if IS_ENABLED(CONFIG_HSS_USE_IHC)
     const enum HSSHartId local_hartid = current_hartid();
 
-    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Initializing PLIC (Mi-V IHC) for hart %d\n", local_hartid);
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Initializing PLIC (Mi-V IHC) for u54_%d\n", local_hartid);
 
     // enable PLIC interrupt for IHC
     // the E51 will be calling PLIC_init_on_reset(), so we'll delay here to allow that to complete...

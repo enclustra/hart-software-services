@@ -25,6 +25,7 @@
 #include "hss_perfctr.h"
 #include "common/mss_peripherals.h"
 #include "hss_crc32.h"
+#include "u54_state.h"
 
 #include <assert.h>
 #include <string.h>
@@ -33,7 +34,11 @@
 
 #if IS_ENABLED(CONFIG_OPENSBI)
 #  include "sbi/riscv_asm.h"
+#  define ffs SBI_FFS
+#  define fls SBI_FLS
 #  include "sbi/sbi_bitops.h"
+#  undef ffs
+#  undef fls
 #  include "sbi/sbi_hart.h"
 #  include "sbi_init.h"
 #  include "sbi_scratch.h"
@@ -60,10 +65,14 @@
 #  include "hss_boot_secure.h"
 #endif
 
+#if IS_ENABLED(CONFIG_SERVICE_OPENSBI_RPROC)
+#  include "opensbi_rproc_ecall.h"
+#endif
+
 
 /* Timeouts */
-#define BOOT_SETUP_PMP_COMPLETE_TIMEOUT (ONE_SEC * 5u)
-#define BOOT_WAIT_TIMEOUT               (ONE_SEC * 2u)
+#define BOOT_SETUP_PMP_COMPLETE_TIMEOUT (ONE_SEC * 1u)
+#define BOOT_WAIT_TIMEOUT               (ONE_SEC * 5u)
 
 #define BOOT_SUB_CHUNK_SIZE 256u
 
@@ -322,6 +331,7 @@ static void boot_init_handler(struct StateMachine * const pMyMachine)
     if (pBootImage) {
         //mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::\tstarting boot\n", pMyMachine->pMachineName);
 
+        pMyMachine->startTime = HSS_GetTime();
         struct HSS_Boot_LocalData * const pInstanceData = pMyMachine->pInstanceData;
         enum HSSHartId const target = pInstanceData->target;
 
@@ -330,7 +340,6 @@ static void boot_init_handler(struct StateMachine * const pMyMachine)
         }
 
         HSS_PerfCtr_Allocate(&pInstanceData->perfCtr, pMyMachine->pMachineName);
-
         pMyMachine->state = BOOT_SETUP_PMP;
     } else {
         // unexpected error state
@@ -363,7 +372,7 @@ static void boot_setup_pmp_onEntry(struct StateMachine * const pMyMachine)
             } else if ((peer == target) ||
                 (pBootImage->hart[peer-1].entryPoint == pBootImage->hart[target-1].entryPoint)) {
                 pInstanceData->hartMask |= (1u << peer);
-                //mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::Registering hart %d to domain \"%s\"\n",
+                //mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::Registering u54_%d to domain \"%s\"\n",
                 //    pMyMachine->pMachineName, peer, pBootImage->hart[target-1].name);
                 mpfs_domains_register_hart(peer, target);
             }
@@ -381,7 +390,9 @@ static void boot_setup_pmp_onEntry(struct StateMachine * const pMyMachine)
                 pInstanceData->hartMask, target,
                 pBootImage->hart[target-1].privMode,
                 (void *)pBootImage->hart[target-1].entryPoint,
-                (void *)pInstanceData->ancilliaryData);
+                (void *)pInstanceData->ancilliaryData,
+		pBootImage->hart[target-1].flags & BOOT_FLAG_ALLOW_COLD_REBOOT,
+		pBootImage->hart[target-1].flags & BOOT_FLAG_ALLOW_WARM_REBOOT);
         }
     }
 }
@@ -411,11 +422,14 @@ static void boot_setup_pmp_complete_onEntry(struct StateMachine * const pMyMachi
 
 static void boot_setup_pmp_complete_handler(struct StateMachine * const pMyMachine)
 {
+
+    struct HSS_Boot_LocalData * const pInstanceData = pMyMachine->pInstanceData;
+    enum HSSHartId const target = pInstanceData->target;
+
     if (HSS_Timer_IsElapsed(pMyMachine->startTime, BOOT_SETUP_PMP_COMPLETE_TIMEOUT)) {
         mHSS_DEBUG_PRINTF(LOG_ERROR, "%s::Timeout after %" PRIu64 " iterations\n",
             pMyMachine->pMachineName, pMyMachine->executionCount);
 
-        struct HSS_Boot_LocalData * const pInstanceData = pMyMachine->pInstanceData;
         for (unsigned int i = 0u; i < ARRAY_SIZE(bootMachine); i++) {
             enum HSSHartId peer = bootMachine[i].hartId;
             free_msg_index_aux(pInstanceData, peer);
@@ -431,6 +445,9 @@ static void boot_setup_pmp_complete_handler(struct StateMachine * const pMyMachi
             //mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::Checking for IPI ACKs: ACK/IDLE ACK\n", pMyMachine->pMachineName);
             //mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::PMP setup completed\n", pMyMachine->pMachineName);
 
+        if (pBootImage->hart[target-1].flags & BOOT_FLAG_SKIP_AUTOBOOT)
+            pMyMachine->state = BOOT_IDLE;
+        else
             pMyMachine->state = BOOT_ZERO_INIT_CHUNKS;
         }
     }
@@ -719,8 +736,11 @@ static void boot_wait_handler(struct StateMachine * const pMyMachine)
     struct HSS_Boot_LocalData * const pInstanceData = pMyMachine->pInstanceData;
     enum HSSHartId const target = pInstanceData->target;
 
+    pMyMachine->startTime = HSS_GetTime();
+
     if (!pBootImage->hart[target-1].entryPoint) {
         // nothing for me to do, not expecting GOTO ack...
+        HSS_U54_SetState_Ex(target, HSS_State_Idle);
         pMyMachine->state = BOOT_IDLE;
     } else if (HSS_Timer_IsElapsed(pMyMachine->startTime, BOOT_WAIT_TIMEOUT)) {
         mHSS_DEBUG_PRINTF(LOG_ERROR, "%s::Timeout after %" PRIu64 " iterations\n",
@@ -810,10 +830,13 @@ bool HSS_Boot_Harts(const union HSSHartBitmask restartHartBitmask)
     // TODO: should it restart all, or only the non-busy boot state machines??
     //
     for (unsigned int i = 0u; i < ARRAY_SIZE(bootMachine); i++) {
-        if (restartHartBitmask.uint && (1u << bootMachine[i].hartId)) {
+        if (restartHartBitmask.uint & (1u << bootMachine[i].hartId)) {
             struct StateMachine * const pMachine = bootMachine[i].pMachine;
 
-            if (pMachine->state == BOOT_SETUP_PMP_COMPLETE) {
+            if (pMachine->state == BOOT_OPENSBI_INIT) {
+                pMachine->state = (stateType_t)BOOT_OPENSBI_INIT;
+                result = true;
+            } else if (pMachine->state == BOOT_SETUP_PMP_COMPLETE) {
                pMachine->state = (stateType_t)BOOT_INITIALIZATION;
                result = true;
             } else if ((pMachine->state == BOOT_INITIALIZATION) || (pMachine->state == BOOT_IDLE)) {
@@ -821,7 +844,7 @@ bool HSS_Boot_Harts(const union HSSHartBitmask restartHartBitmask)
                result = true;
             } else {
                result = false;
-               mHSS_DEBUG_PRINTF(LOG_ERROR, "invalid hart state %d for hart %u\n", pMachine->state, i+1u);
+               mHSS_DEBUG_PRINTF(LOG_ERROR, "invalid hart state %d for u54_%u\n", pMachine->state, i+1u);
             }
         }
     }
@@ -834,9 +857,9 @@ enum IPIStatusCode HSS_Boot_RestartCore(enum HSSHartId source)
     enum IPIStatusCode result = IPI_FAIL;
 
     if (!HSS_Boot_ValidateImage(pBootImage)) {
-        mHSS_DEBUG_PRINTF(LOG_ERROR, "validation failed for hart %u\n", source);
+        mHSS_DEBUG_PRINTF(LOG_ERROR, "validation failed for u54_%u\n", source);
     } else if (source != HSS_HART_ALL) {
-        mHSS_DEBUG_PRINTF(LOG_NORMAL, "called for hart %u\n", source);
+        //mHSS_DEBUG_PRINTF(LOG_NORMAL, "called for u54_%u\n", source);
 
         union HSSHartBitmask restartHartBitmask = { .uint = 0u };
 
@@ -861,7 +884,7 @@ enum IPIStatusCode HSS_Boot_RestartCore(enum HSSHartId source)
             }
         }
     } else {
-        mHSS_DEBUG_PRINTF(LOG_NORMAL, "called for all harts\n");
+        //mHSS_DEBUG_PRINTF(LOG_NORMAL, "called for all harts\n");
 
         const union HSSHartBitmask restartHartBitmask = {
             .s = {
@@ -881,6 +904,18 @@ enum IPIStatusCode HSS_Boot_RestartCore(enum HSSHartId source)
     return result;
 }
 
+bool HSS_SkipBoot_IsSet(enum HSSHartId target)
+{
+    bool result = false;
+
+    assert(pBootImage != NULL);
+
+    if (pBootImage->hart[target-1].flags & BOOT_FLAG_SKIP_AUTOBOOT)
+        result = true;
+
+    return result;
+}
+
 enum IPIStatusCode HSS_Boot_IPIHandler(TxId_t transaction_id, enum HSSHartId source,
     uint32_t immediate_arg, void *p_extended_buffer_in_ddr, void *p_ancilliary_buffer_in_ddr)
 {
@@ -892,6 +927,20 @@ enum IPIStatusCode HSS_Boot_IPIHandler(TxId_t transaction_id, enum HSSHartId sou
 
     // boot strap IPI received from one of the U54s...
     //mHSS_DEBUG_PRINTF(LOG_ERROR, "called for %d\n", source);
+
+    /* Remoteproc use case 1.1:
+       Elf file loaded by Linux using rproc elf loader, so
+       no need to reload the payload on the HSS
+    */
+#if IS_ENABLED(CONFIG_SERVICE_OPENSBI_RPROC)
+    if(immediate_arg == RPROC_BOOT)
+    {
+        struct RemoteProcMsg *rproc_data = (struct RemoteProcMsg *)p_extended_buffer_in_ddr;
+        source = rproc_data->target;
+        struct StateMachine * const pMachine = bootMachine[source - 1].pMachine;
+        pMachine->state = (stateType_t)BOOT_OPENSBI_INIT;
+    }
+#endif
 
     return HSS_Boot_RestartCore(source);
     return IPI_SUCCESS;
@@ -1103,8 +1152,9 @@ enum IPIStatusCode HSS_Boot_PMPSetupHandler(TxId_t transaction_id, enum HSSHartI
 
     // request to setup PMP by E51 received
     enum HSSHartId myHartId = current_hartid();
+    HSS_U54_SetState(HSS_State_Booting);
 
-    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Hart%u ", myHartId);
+    //mHSS_DEBUG_PRINTF(LOG_NORMAL, "Hart%u ", myHartId);
 
     if (!pmpSetupFlag[myHartId]) {
         pmpSetupFlag[myHartId] = true; // PMPs can be setup only once without reboot....
@@ -1126,10 +1176,10 @@ enum IPIStatusCode HSS_Boot_PMPSetupHandler(TxId_t transaction_id, enum HSSHartI
 	(void)mss_set_apb_bus_cr((uint32_t)LIBERO_SETTING_APBBUS_CR);
         //
 
-        mHSS_DEBUG_PRINTF_EX("setup complete\n");
+        //mHSS_DEBUG_PRINTF_EX("setup complete\n");
         result =  IPI_SUCCESS;
     } else {
-        mHSS_DEBUG_PRINTF_EX("PMPs already configured\n");
+        //mHSS_DEBUG_PRINTF_EX("PMPs already configured\n");
         result =  IPI_SUCCESS;
     }
 
@@ -1149,8 +1199,6 @@ bool HSS_Boot_PMPSetupRequest(enum HSSHartId target, uint32_t *indexOut)
 
     assert(target != HSS_HART_ALL); // need to setup PMPs on each Hart individually
 
-    //mHSS_DEBUG_PRINTF(LOG_NORMAL, "called for hart %u\n", target);
-
     result = IPI_MessageAlloc(indexOut);
     assert(result);
 
@@ -1159,7 +1207,7 @@ bool HSS_Boot_PMPSetupRequest(enum HSSHartId target, uint32_t *indexOut)
 
         // couldn't send message, so free up resources...
         if (!result) {
-            mHSS_DEBUG_PRINTF(LOG_NORMAL, "hart %u: failed to send message, so freeing\n", target);
+            mHSS_DEBUG_PRINTF(LOG_NORMAL, "u54_%u: failed to send message, so freeing\n", target);
             IPI_MessageFree(*indexOut);
         }
     }
@@ -1180,7 +1228,7 @@ bool HSS_Boot_SBISetupRequest(enum HSSHartId target, uint32_t *indexOut)
 
     assert(target != HSS_HART_ALL); // need to setup SBIs on each Hart individually
 
-    mHSS_DEBUG_PRINTF(LOG_NORMAL, "called for hart %u\n", target);
+    //mHSS_DEBUG_PRINTF(LOG_NORMAL, "called for u54_%u\n", target);
 
     result = IPI_MessageAlloc(indexOut);
     assert(result);
@@ -1190,7 +1238,7 @@ bool HSS_Boot_SBISetupRequest(enum HSSHartId target, uint32_t *indexOut)
 
         // couldn't send message, so free up resources...
         if (!result) {
-            mHSS_DEBUG_PRINTF(LOG_NORMAL, "hart %u: failed to send message, so freeing\n", target); //TODO
+            mHSS_DEBUG_PRINTF(LOG_NORMAL, "u54_%u: failed to send message, so freeing\n", target); //TODO
             IPI_MessageFree(*indexOut);
         }
     }

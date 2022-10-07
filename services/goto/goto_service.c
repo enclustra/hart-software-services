@@ -35,6 +35,7 @@
 #include "csr_helper.h"
 
 #include "hss_atomic.h"
+#include "u54_state.h"
 
 static void goto_init_handler(struct StateMachine * const pMyMachine);
 static void goto_idle_handler(struct StateMachine * const pMyMachine);
@@ -101,9 +102,9 @@ enum IPIStatusCode HSS_GOTO_IPIHandler(TxId_t transaction_id, enum HSSHartId sou
     int hartid = current_hartid();
 
     if (source != HSS_HART_E51) {
-        mHSS_DEBUG_PRINTF(LOG_NORMAL, "security policy prevented GOTO request from hart %d\n", source);
+        mHSS_DEBUG_PRINTF(LOG_NORMAL, "security policy prevented GOTO request from u54_%d\n", source);
     } else if (hartid == HSS_HART_E51) {
-        mHSS_DEBUG_PRINTF(LOG_ERROR, "hart %d: request prohibited by policy\n", HSS_HART_E51);
+        mHSS_DEBUG_PRINTF(LOG_ERROR, "u54_%d: request prohibited by policy\n", HSS_HART_E51);
     } else {
         // the following should always be true if we have consumed intents for GOTO...
         assert(p_extended_buffer != NULL);
@@ -127,10 +128,10 @@ enum IPIStatusCode HSS_GOTO_IPIHandler(TxId_t transaction_id, enum HSSHartId sou
             mHSS_DEBUG_PRINTF(LOG_NORMAL, "Address to execute is %p\n", (void *)p_extended_buffer);
             CSR_ClearMSIP();
 
-            uint32_t mstatus_val = mHSS_CSR_READ(CSR_MSTATUS);
+            uint32_t mstatus_val = csr_read(CSR_MSTATUS);
             mstatus_val = EXTRACT_FIELD(mstatus_val, MSTATUS_MPIE);
-            mHSS_CSR_WRITE(CSR_MSTATUS, mstatus_val);
-            mHSS_CSR_WRITE(CSR_MIE, 0u);
+            csr_write(CSR_MSTATUS, mstatus_val);
+            csr_write(CSR_MIE, 0u);
 
             result = IPI_SUCCESS;
         }
@@ -142,12 +143,13 @@ enum IPIStatusCode HSS_GOTO_IPIHandler(TxId_t transaction_id, enum HSSHartId sou
             // value y, x IE is set to x PIE; the privilege mode is changed to y; x PIE is set to 1;
             // and x PP is set to U (or M if user-mode is not supported).
             const uint32_t next_mode = immediate_arg;
+            HSS_U54_SetState(HSS_State_Running);
 
 #if IS_ENABLED(CONFIG_OPENSBI)
             sbi_hart_switch_mode(hartid, 0u, (unsigned long)p_extended_buffer, next_mode, false /*next_virt -> required hypervisor */);
 #else
             // set MSTATUS.MPP to Supervisor mode, and set MSTATUS.MPIE to 1
-            uint32_t mstatus_val = mHSS_CSR_READ(mstatus);
+            uint32_t mstatus_val = csr_read(mstatus);
 
             // next_mode stores the desired privilege mode to return to..
             // typically PRV_S
@@ -165,10 +167,12 @@ enum IPIStatusCode HSS_GOTO_IPIHandler(TxId_t transaction_id, enum HSSHartId sou
 
             mstatus_val = INSERT_FIELD(mstatus_val, MSTATUS_SIE, 0);
             mstatus_val = INSERT_FIELD(mstatus_val, MSTATUS_SPIE, 0);
-            mHSS_CSR_WRITE(mstatus, mstatus_val);
+            csr_write(mstatus, mstatus_val);
 
             // set MEPC to function address (smuggled in p_extended_buffer argument)
-            mHSS_CSR_WRITE(mepc, *((void **)p_extended_buffer));
+            csr_write(mepc, *((void **)p_extended_buffer));
+
+
 
             // execute MRET, causing MIE <= MPIE, new priv mode <= PRV_S, MPIE <= 1, MPP <= U
             register unsigned long a0 asm("a0") = hartid;

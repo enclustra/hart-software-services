@@ -167,7 +167,13 @@ struct HSS_Storage *HSS_BootGetActiveStorage(void)
     }
 
     return pResult;
+}
 
+void HSS_BootListStorageProviders(void)
+{
+    for (uint32_t i = 0; i < ARRAY_SIZE(pStorages); i++) {
+        mHSS_DEBUG_PRINTF_EX(" - %s\n", pStorages[i]->name);
+    }
 }
 
 bool HSS_BootInit(void)
@@ -409,7 +415,6 @@ static bool getBootImageFromQSPI_(struct HSS_Storage *pStorage, struct HSS_BootI
         sizeof(struct HSS_BootImage));
     result = HSS_QSPI_ReadBlock(&bootImage, srcLBAOffset * blockSize,
         sizeof(struct HSS_BootImage));
-
     if (!result) {
         mHSS_DEBUG_PRINTF(LOG_ERROR, "HSS_QSPI_ReadBlock() failed\n");
     } else {

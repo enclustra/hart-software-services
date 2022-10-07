@@ -41,7 +41,7 @@
 #include "dump_payload.h"
 #include "debug_printf.h"
 
-#define GEN_VERSION_STRING "0.99.28"
+#define GEN_VERSION_STRING "0.99.33"
 
 struct HSS_BootImage bootImage;
 struct HSS_BootChunkDesc *pChunkDescs;
@@ -57,7 +57,7 @@ static void print_usage(char **argv) __attribute__((nonnull));
 static void intro_banner(void)
 {
 	puts("Hart Software Service formatted boot image generator v" GEN_VERSION_STRING);
-	puts("Copyright (c) 2021 Microchip FPGA Embedded Systems Solutions.\n");
+	puts("Copyright (c) 2021-2022 Microchip FPGA Embedded Systems Solutions.\n");
 }
 
 static void print_usage(char **argv)
@@ -66,7 +66,7 @@ static void print_usage(char **argv)
 	printf("\nMultiple '-v' arguments increases verbosity of output.\n\n");
 
 	printf(" -c		Run generator and specify path to configuration YAML\n");
-	printf(" -d		Run analyzer and specifiy path to payload binary\n");
+	printf(" -d		Run analyzer and specify path to payload binary\n");
 	printf(" -h		print this help\n");
 	printf(" -p		enabled secure boot and specify private key\n");
 	printf(" -v		Increase verbosity of output\n");

@@ -128,6 +128,15 @@ void dump_payload(const char *filename_input)
 			if (pBootImage->hart[i].flags & BOOT_FLAG_SKIP_OPENSBI) {
 				printf(" SKIP_OPENSBI");
 			}
+			if (pBootImage->hart[i].flags & BOOT_FLAG_ALLOW_COLD_REBOOT) {
+				printf(" COLD_REBOOT");
+			}
+			if (pBootImage->hart[i].flags & BOOT_FLAG_ALLOW_WARM_REBOOT) {
+				printf(" WARM_REBOOT");
+			}
+			if (pBootImage->hart[i].flags & BOOT_FLAG_SKIP_AUTOBOOT) {
+				printf(" SKIP_AUTOBOOT");
+			}
 			printf("\n");
 		}
 
@@ -225,7 +234,7 @@ void dump_payload(const char *filename_input)
 	printf("ZI Chunks: total of %lu chunk%s found\n", (unsigned long)totalChunkCount,
 		(totalChunkCount != 1u) ? "s":"");
 
-	// skipping binary fie array
+	// skipping binary file array
 
 	munmap(pBootImage, fileSize);
 	close(fdIn);

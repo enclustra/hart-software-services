@@ -174,8 +174,6 @@
 #define DDR_SUPPORT
 #define MSSIO_SUPPORT
 
-
-
 /*
  * Debugging IHC. This placed memory map in volatile memory and uses software
  * state machine
@@ -184,12 +182,16 @@
 #define LIBERO_SETTING_CONTEXT_B_HART_EN    0x00000010UL    /* hart 4 */
 
 /*
+ * DDR software options
+ */
+
+/*
  * Debug DDR startup through a UART
- * Comment out in normal operation. Useful for debug purposes in bring-up of DDR
- * in a new board design.
- * See the weak function setup_ddr_debug_port(mss_uart_instance_t * uart)
- * If you need to edit this function, make a copy of the function without the
- * weak declaration in your application code.
+ * Comment out in normal operation. May be useful for debug purposes in bring-up
+ * of a new board design.
+ * See the weakly linked function setup_ddr_debug_port(mss_uart_instance_t * uart)
+ * If you need to edit this function, make another copy of the function in your
+ * application without the weak linking attribute. This copy will then get linked.
  * */
 //#define DEBUG_DDR_INIT
 //#define DEBUG_DDR_RD_RW_FAIL
@@ -197,55 +199,27 @@
 //#define DEBUG_DDR_CFG_DDR_SGMII_PHY
 //#define DEBUG_DDR_DDRCFG
 
-#define LIBERO_SETTING_CFG_VREFDQ_TRN_ENABLE        0x00000001UL
-#define LIBERO_SETTING_CFG_VREFDQ_TRN_RANGE         0x00000001UL
-#define LIBERO_SETTING_CFG_VREFDQ_TRN_VALUE         0x00000017UL
-
 /*
-  * Changes are fixes to data mismatches seen when applying the new
-  * DDR workload identified by the Linux boot failures on the icicle kit.
-  * CFG_MIN_READ_IDLE helped it pass in DDR3/DDR4, and CFG_READ_TO_WRITE fixed
-  * a different issue where 0's were being read back with the same workload on
-  * LPDDR3.
-  */
-#define LIBERO_SETTING_CFG_MIN_READ_IDLE            0x00000007UL
-#define LIBERO_SETTING_CFG_DM_EN                    0x00000000UL
-#define LIBERO_SETTING_CFG_RMW_EN                   0x00000001UL
-#define LIBERO_SETTING_DDRPHY_MODE                  0x00014A24UL
-
-/*
- * To match DCT version Feb 2022
+ * SDIO register address location in fabric
  */
-#define LIBERO_SETTING_DPC_BITS                     0x00050422UL
-#define LIBERO_SETTING_RPC_ODT_DQ                   0x00000003UL
-#define LIBERO_SETTING_TIP_CFG_PARAMS               0x07CFE02FUL
-#define LIBERO_SETTING_CFG_READ_TO_WRITE_ODT        0x0000000FUL
-
-#define LIBERO_SETTING_CFG_PU_CAL                   0x00000000UL
-
 /*
- * skip extra error checking on startup
- * Set to 0xF to skip extra checking at end of training
- * */
-// #define LIBERO_FAST_START                           0x0FU
-
-/*
- * To lower training time adjust LIBERO_SETTING_CFG_DFI_T_PHY_WRLAT value so
- * wr calib result is 00001111
+ * We want the Kconfig-generated config.h file to get the SDIO Register Address,
+ * but it defines CONFIG_OPENSBI...
  *
- * */
-// #define LIBERO_SETTING_CFG_DFI_T_PHY_WRLAT          0x00000007UL
-
-
-/*
- * The hardware configuration settings imported from Libero project get generated
- * into <project_name>/src/boards/<your-board>/<fpga-design-config> folder.
- * If you need to overwrite them for testing purposes, you can do so here.
- * e.g. If you want change the default SEG registers configuration defined by
- * LIBERO_SETTING_SEG0_0, define it here and it will take precedence.
- * #define LIBERO_SETTING_SEG0_0 0x80007F80UL
- *
+ * OpenSBI type definitions conflict with mpfs_hal
+ * so we need to undefine CONFIG_OPENSBI after including config.h
  */
+#include "config.h"
+#undef CONFIG_OPENSBI
+
+#ifdef CONFIG_SERVICE_MMC_FABRIC_SD_EMMC_DEMUX_SELECT_ADDRESS
+#  undef LIBERO_SETTING_FPGA_SWITCH_ADDRESS
+#  define LIBERO_SETTING_FPGA_SWITCH_ADDRESS CONFIG_SERVICE_MMC_FABRIC_SD_EMMC_DEMUX_SELECT_ADDRESS
+#else
+#  ifndef LIBERO_SETTING_FPGA_SWITCH_ADDRESS
+#    define LIBERO_SETTING_FPGA_SWITCH_ADDRESS 0x4fffff00
+#  endif
+#endif
 
 #endif /* USER_CONFIG_MSS_USER_CONFIG_H_ */
 

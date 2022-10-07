@@ -133,7 +133,7 @@ static struct {
 //
 static void beu_init_handler(struct StateMachine * const pMyMachine)
 {
-    for (enum HSSHartId hartid = HSS_HART_U54_1; hartid <= HSS_HART_U54_4; hartid++)
+    for (enum HSSHartId hartid = HSS_HART_E51; hartid <= HSS_HART_U54_4; hartid++)
     {
         BEU->regs[hartid].ACCRUED = 0llu;
         BEU->regs[hartid].VALUE = 0llu;
@@ -150,7 +150,7 @@ static void beu_monitoring_handler(struct StateMachine * const pMyMachine)
     static uint64_t shadow_accrued_[MAX_NUM_HARTS] = { 0llu, };
     static uint64_t shadow_value_[MAX_NUM_HARTS] = { 0llu, };
 
-    for (enum HSSHartId hartid = HSS_HART_U54_1; hartid <= HSS_HART_U54_4; hartid++)
+    for (enum HSSHartId hartid = HSS_HART_E51; hartid <= HSS_HART_U54_4; hartid++)
     {
         uint64_t accrued = BEU->regs[hartid].ACCRUED;
         uint64_t value = BEU->regs[hartid].VALUE;
@@ -158,7 +158,7 @@ static void beu_monitoring_handler(struct StateMachine * const pMyMachine)
         if (accrued & BEU_ENABLE_MASK) {
             if (accrued & BEU_ENABLE_UNCORRECTABLE_MASK) {
                 if ((BEU->regs[hartid].ENABLE) && (value == shadow_value_[hartid])) {
-                    mHSS_DEBUG_PRINTF(LOG_ERROR, "Uncorrectable errors: hart %d - error %llu at %p\n", hartid, accrued, value);
+                    mHSS_DEBUG_PRINTF(LOG_ERROR, "Uncorrectable errors: u54_%d - error %llu at %p\n", hartid, accrued, value);
                 }
 
                 // hart has experienced fatal error, so stop checking for BEU errors for this hart...

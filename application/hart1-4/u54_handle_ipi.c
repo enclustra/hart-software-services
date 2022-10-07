@@ -34,12 +34,11 @@
 
 #include "csr_helper.h"
 #include "u54_handle_ipi.h"
+#include "u54_state.h"
 
 #include "hss_atomic.h"
 
 #if IS_ENABLED(CONFIG_HSS_USE_IHC)
-#  define set_csr  csr_write
-#  define read_csr csr_read
 #  include "mss_plic.h"
 #  include "miv_ihc.h"
 #endif
@@ -155,5 +154,6 @@ bool HSS_U54_HandleIPI(void)
 void HSS_U54_Banner(void)
 {
     // wait for E51 to setup BSS...
+    HSS_U54_SetState(HSS_State_Idle);
     mHSS_DEBUG_PRINTF(LOG_NORMAL, "u54_%d: Waiting for E51 instruction\n", current_hartid());
 }

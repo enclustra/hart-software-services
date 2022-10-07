@@ -27,7 +27,6 @@
  */
 
 #define _FILE_OFFSET_BITS 64
-#define OPENSSL_API_COMPAT 0x10101000L
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,10 +73,6 @@ static_assert(sizeof(void *)==8, "Fatal: this program requires a 64bit compiler"
 
 #include "hss_types.h"
 #include "generate_payload.h"
-
-#ifdef __riscv
-#	error 1
-#endif
 
 #if defined(__LP64__) || defined(_LP64)
 #	ifndef PRIx64

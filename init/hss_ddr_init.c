@@ -111,24 +111,6 @@ bool HSS_DDRPrintSegConfig(void)
     return true;
 }
 
-//
-// We use the GCC intrinsic __builtin_popcount() to count cache way bits set
-// if we don't have an implementation for __popcountdi2, we'll use the weakly
-// bound one here, which does some common bit tricks
- __attribute__((weak)) int64_t __popcountdi2(int64_t n);
-__attribute__((weak)) int64_t __popcountdi2(int64_t n)
-{
-    n = n - ((n >> 1) & 0x5555555555555555ul);
-    n = ((n >> 2) & 0x3333333333333333ul) + (n & 0x3333333333333333ul);
-    n = ((n >> 4) + n)  & 0x0f0f0f0f0f0f0f0ful;
-
-    n = ((n >> 32) + n); // & 0x00000000fffffffful;
-    n = ((n >> 16) + n); // & 0x000000000000fffful;
-    n = ((n >> 8) + n)  & 0x000000000000007ful;
-
-    return n;
-}
-
 bool HSS_DDRPrintL2CacheWaysConfig(void)
 {
     mHSS_DEBUG_PRINTF(LOG_STATUS, "L2 Cache Configuration:\n");
@@ -197,7 +179,7 @@ bool HSS_DDRPrintL2CacheWayMasks(void)
  */
 
 static size_t ddr_training_progress = 0;
-#define TYPICAL_DDR_TRAINING_ITERATIONS 150u
+#define TYPICAL_DDR_TRAINING_ITERATIONS 5u
 
 bool HSS_DDRInit(void)
 {
@@ -221,8 +203,15 @@ bool HSS_DDRInit(void)
             result = false;
         } else {
             HSS_PerfCtr_Lap(perf_ctr_index);
-            sbi_printf(CURSOR_UP "%s Passed (%d ms)\n", ddr_training_prefix,
-                HSS_PerfCtr_GetTime(perf_ctr_index)/TICKS_PER_MILLISEC);
+            sbi_printf(CURSOR_UP "%s Passed", ddr_training_prefix);
+
+#if IS_ENABLED(CONFIG_DEBUG_PERF_CTRS)
+            size_t ticks = HSS_PerfCtr_GetTime(perf_ctr_index);
+            size_t millisecs = (ticks + (TICKS_PER_MILLISEC/2)) / TICKS_PER_MILLISEC;
+
+            sbi_printf(" ( %lu ms)", millisecs);
+#endif
+            sbi_printf("\n");
         }
         HSS_PerfCtr_Lap(perf_ctr_index);
 #  endif

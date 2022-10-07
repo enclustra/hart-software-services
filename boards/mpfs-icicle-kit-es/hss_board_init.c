@@ -81,3 +81,8 @@ bool HSS_BoardLateInit(void)
 #endif
     return true;
 }
+
+bool HSS_BoardHandoff(void)
+{
+    return true;
+}

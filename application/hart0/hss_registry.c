@@ -291,6 +291,7 @@ const struct InitFunction /*@null@*/ globalInitFunctions[] = {
     { "IPI_QueuesInit",                IPI_QueuesInit,                false, false },
     { "HSS_PMP_Init",                  HSS_PMP_Init,                  false, false },
     { "HSS_BootInit",                  HSS_BootInit,                  false, true },
+    { "HSS_BoardHandoff",              HSS_BoardHandoff,              false, false },
 #endif
 };
 const size_t spanOfGlobalInitFunctions = ARRAY_SIZE(globalInitFunctions);

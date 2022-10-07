@@ -64,6 +64,7 @@ const struct InitFunction /*@null@*/ boardInitFunctions[] = {
 /****************************************************************************/
 
 #define MSS_MAC1_BASE (0x20112000U)
+#define UART_SEL_GPIO_BASE (0x42000000U)
 
 void ENC_init_mdio(MAC_TypeDef *mac_base);
 void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base);
@@ -186,6 +187,27 @@ bool HSS_BoardLateInit(void)
     ENC_InitializeMemory((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize());
     ENC_InitializeMemory((uint64_t *)HSS_DDRHi_GetStart(), HSS_DDRHi_GetSize());
 #endif
+
+    return true;
+}
+
+bool HSS_BoardHandoff(void)
+{
+    typedef struct
+    {
+        volatile uint32_t GPIO_CFG[32];
+        volatile uint32_t GPIO_IRQ;
+        volatile uint32_t GPIO_ALIGN0[3];
+        volatile const uint32_t GPIO_IN;
+        volatile uint32_t GPIO_ALIGN1[3];
+        volatile uint32_t GPIO_OUT;
+    } FPGA_GPIO_TypeDef;
+
+    // Switch to uart 1
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Switching to UART 1 ...\n");
+    FPGA_GPIO_TypeDef *gpio_base = (FPGA_GPIO_TypeDef*)UART_SEL_GPIO_BASE;
+    gpio_base->GPIO_CFG[0] = 0x5; // Configure to output
+    gpio_base->GPIO_OUT = 0x1; // Set output to 1 to select uart 1
 
     return true;
 }

@@ -30,6 +30,7 @@ Source code is found under the `hart-software-services` folder.
     ├── boards
     │   ├── mpfs-icicle-kit-es (Microchip Icicle Kit)
     │   ├── aries-m100pfsevp (Aries M100PFEVPS Kit)
+    │   ├── enclustra-mercury-mp1 (Enclustra Mercury+ MP1 SoM)
     │   └── custom-board-design (template for new boards)
     ├── envm-wrapper (helper routines to inflate the HSS to L2-Scratchpad)
     ├── include

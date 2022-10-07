@@ -148,6 +148,7 @@ void ENC_InitEthPhy(void)
     const uint16_t CONTROL_POWER_DOWN_MASK = 0x0800;
     const uint16_t CONFIG3_IRQ_EN_MASK = 0x0080;
 
+    int numberOfDetectedEthPhy = 0;
     MAC_TypeDef *mac_base = (MAC_TypeDef*)MSS_MAC1_BASE;
     ENC_init_mdio(mac_base);
 
@@ -159,7 +160,8 @@ void ENC_InitEthPhy(void)
         uint32_t id = ((uint32_t)idMsb << 16) | idLsb;
         if (id == DP83867_ID)
         {
-            mHSS_DEBUG_PRINTF(LOG_WARN, "Phy found at address %i\n", phyAddr);
+            mHSS_DEBUG_PRINTF(LOG_NORMAL, "ETH PHY found at MDIO address %i\n", phyAddr);
+            numberOfDetectedEthPhy ++;
 
             // Configure pin INT#/PWDN# for interrupt functionality
             ENC_write_phy_reg(mac_base, phyAddr, MDIO_CONFIG3, CONFIG3_IRQ_EN_MASK);
@@ -168,6 +170,10 @@ void ENC_InitEthPhy(void)
             uint16_t reg = ENC_read_phy_reg(mac_base, phyAddr, MDIO_CONTROL);
             ENC_write_phy_reg(mac_base, phyAddr, MDIO_CONTROL, reg & ~CONTROL_POWER_DOWN_MASK);
         }
+    }
+
+    if (numberOfDetectedEthPhy == 0) {
+        mHSS_DEBUG_PRINTF(LOG_WARN, "No ETH PHY found\n");
     }
 }
 

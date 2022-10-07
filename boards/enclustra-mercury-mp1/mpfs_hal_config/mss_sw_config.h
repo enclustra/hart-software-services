@@ -2,7 +2,7 @@
 #define MSS_SW_CONFIG_H_
 
 /*******************************************************************************
- * Copyright 2019-2021 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -173,12 +173,16 @@
 #define MSSIO_SUPPORT
 
 /*
+ * DDR software options
+ */
+
+/*
  * Debug DDR startup through a UART
- * Comment out in normal operation. Useful for debug purposes in bring-up of DDR
- * in a new board design.
- * See the weak function setup_ddr_debug_port(mss_uart_instance_t * uart)
- * If you need to edit this function, make a copy of the function without the
- * weak declaration in your application code.
+ * Comment out in normal operation. May be useful for debug purposes in bring-up
+ * of a new board design.
+ * See the weakly linked function setup_ddr_debug_port(mss_uart_instance_t * uart)
+ * If you need to edit this function, make another copy of the function in your
+ * application without the weak linking attribute. This copy will then get linked.
  * */
 //#define DEBUG_DDR_INIT
 //#define DEBUG_DDR_RD_RW_FAIL
@@ -187,14 +191,26 @@
 //#define DEBUG_DDR_DDRCFG
 
 /*
- * The hardware configuration settings imported from Libero project get generated
- * into <project_name>/src/boards/<your-board>/<fpga-design-config> folder.
- * If you need to overwrite them for testing purposes, you can do so here.
- * e.g. If you want change the default SEG registers configuration defined by
- * LIBERO_SETTING_SEG0_0, define it here and it will take precedence.
- * #define LIBERO_SETTING_SEG0_0 0x80007F80UL
- *
+ * SDIO register address location in fabric
  */
+/*
+ * We want the Kconfig-generated config.h file to get the SDIO Register Address,
+ * but it defines CONFIG_OPENSBI...
+ *
+ * OpenSBI type definitions conflict with mpfs_hal
+ * so we need to undefine CONFIG_OPENSBI after including config.h
+ */
+#include "config.h"
+#undef CONFIG_OPENSBI
+
+#ifdef CONFIG_SERVICE_MMC_FABRIC_SD_EMMC_DEMUX_SELECT_ADDRESS
+#  undef LIBERO_SETTING_FPGA_SWITCH_ADDRESS
+#  define LIBERO_SETTING_FPGA_SWITCH_ADDRESS CONFIG_SERVICE_MMC_FABRIC_SD_EMMC_DEMUX_SELECT_ADDRESS
+#else
+#  ifndef LIBERO_SETTING_FPGA_SWITCH_ADDRESS
+#    define LIBERO_SETTING_FPGA_SWITCH_ADDRESS 0x4fffff00
+#  endif
+#endif
 
 #endif /* USER_CONFIG_MSS_USER_CONFIG_H_ */
 

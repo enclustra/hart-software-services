@@ -75,7 +75,7 @@ OUTPUT_ARCH( "riscv" )
  * LIBERO_SETTING_RESET_VECTOR_HART0 etc in <hw_memory.h>
  *
  * When debugging a bare metal program that is run out of reset from envm, a linker
- * script will be used whereby the progdtim will run from LIM instead of envm.
+ * script will be used whereby the program will run from LIM instead of envm.
  * In this case, set the reset vector in the linker script to 0x0800_0000.
  * This means you are not continually programming the envm each time you load a
  * program and there is no limitation with hardware break points whn debugging.
@@ -101,10 +101,11 @@ MEMORY
     u54_2_itim (rwx)   : ORIGIN = 0x01810000, LENGTH = 28k
     u54_3_itim (rwx)   : ORIGIN = 0x01818000, LENGTH = 28k
     u54_4_itim (rwx)   : ORIGIN = 0x01820000, LENGTH = 28k
-    l2lim (rwx)        : ORIGIN = 0x08000000, LENGTH = 1920k
+    l2lim (rwx)        : ORIGIN = 0x08000000, LENGTH = 512k
     l2zerodevice (rwx) : ORIGIN = 0x0A000000, LENGTH = 512k
     ddr (rwx)          : ORIGIN = 0x80000000, LENGTH = 1024m
     ddrhi (rwx)        : ORIGIN = 0x1000000000, LENGTH = 1024m
+    ncddrhi (rwx)      : ORIGIN = 0x1400000000, LENGTH = 2048m
 }
 
 PROVIDE(HEAP_SIZE = 0k);
@@ -130,6 +131,9 @@ SECTIONS
 
     PROVIDE(__ddrhi_start      = ORIGIN(ddrhi));
     PROVIDE(__ddrhi_end        = ORIGIN(ddrhi) + LENGTH(ddrhi));
+
+    PROVIDE(__ncddrhi_start    = ORIGIN(ncddrhi));
+    PROVIDE(__ncddrhi_end      = ORIGIN(ncddrhi) + LENGTH(ncddrhi));
 
     PROVIDE(__dtim_start       = ORIGIN(dtim));
     PROVIDE(__dtim_end         = ORIGIN(dtim) + LENGTH(dtim));

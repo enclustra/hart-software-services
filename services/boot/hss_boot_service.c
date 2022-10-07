@@ -804,11 +804,13 @@ static void boot_idle_onEntry(struct StateMachine * const pMyMachine)
     HSS_PerfCtr_Lap(pInstanceData->perfCtr);
     //mHSS_DEBUG_PRINTF(LOG_ERROR, "%s:: now at state %d\n", pMyMachine->pMachineName, pMyMachine->state);
 
+#ifdef CONFIG_MODULE_ENCLUSTRA_MP1
     // switch to uart 1
     mHSS_DEBUG_PRINTF(LOG_NORMAL, "Switching to UART 1 ...\n");
     FPGA_GPIO_TypeDef *gpio_base = (FPGA_GPIO_TypeDef*)UART_SEL_GPIO_BASE;
     gpio_base->GPIO_CFG[0] = 0x5; // configure to output
     gpio_base->GPIO_OUT = 0x1; // set output to 1 to select uart 1
+#endif
 }
 
 static void boot_idle_handler(struct StateMachine * const pMyMachine)

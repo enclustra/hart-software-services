@@ -103,9 +103,9 @@ MEMORY
     u54_4_itim (rwx)   : ORIGIN = 0x01820000, LENGTH = 28k
     l2lim (rwx)        : ORIGIN = 0x08000000, LENGTH = 512k
     l2zerodevice (rwx) : ORIGIN = 0x0A000000, LENGTH = 512k
-    ddr (rwx)          : ORIGIN = 0x80000000, LENGTH = 1024m
-    ddrhi (rwx)        : ORIGIN = 0x1000000000, LENGTH = 1024m
-    ncddrhi (rwx)      : ORIGIN = 0x1400000000, LENGTH = 2048m
+    ddr (rwx)          : ORIGIN = 0x80000000, LENGTH = 0k
+    ddrhi (rwx)        : ORIGIN = 0x1000000000, LENGTH = 2048m
+    ncddrhi (rwx)      : ORIGIN = 0x1400000000, LENGTH = 0k
 }
 
 PROVIDE(HEAP_SIZE = 0k);

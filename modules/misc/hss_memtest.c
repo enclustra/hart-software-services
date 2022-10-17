@@ -223,22 +223,27 @@ bool HSS_MemTestDDRFast(void)
 
     static int perf_ctr_index_mem32 = PERF_CTR_UNINITIALIZED;
     static int perf_ctr_index_mem64 = PERF_CTR_UNINITIALIZED;
-    HSS_PerfCtr_Allocate(&perf_ctr_index_mem32, "MemTest(DDR32)");
-    if ((HSS_MemTestDataBus((uint64_t *)HSS_DDR_GetStart()) != 0u)
-            || (HSS_MemTestAddressBus((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize()) != NULL)) {
-        result = false;
+
+    if (HSS_DDR_GetSize()) {
+        HSS_PerfCtr_Allocate(&perf_ctr_index_mem32, "MemTest(DDR32)");
+        if ((HSS_MemTestDataBus((uint64_t *)HSS_DDR_GetStart()) != 0u)
+                || (HSS_MemTestAddressBus((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize()) != NULL)) {
+            result = false;
+        }
+        HSS_PerfCtr_Lap(perf_ctr_index_mem32);
     }
-    HSS_PerfCtr_Lap(perf_ctr_index_mem32);
 
     mHSS_FANCY_PRINTF(LOG_NORMAL, "DDR-Hi size is % 4lu MiB\n",
         (uint32_t)(HSS_DDRHi_GetSize()/mMiB_IN_BYTES));
 
-    HSS_PerfCtr_Allocate(&perf_ctr_index_mem64, "MemTest(DDR64)");
-    if ((HSS_MemTestDataBus((uint64_t *)HSS_DDRHi_GetStart()) != 0u)
-            || (HSS_MemTestAddressBus((uint64_t *)HSS_DDRHi_GetStart(), HSS_DDRHi_GetSize()) != NULL)) {
-        result = false;
+    if (HSS_DDRHi_GetSize()) {
+        HSS_PerfCtr_Allocate(&perf_ctr_index_mem64, "MemTest(DDR64)");
+        if ((HSS_MemTestDataBus((uint64_t *)HSS_DDRHi_GetStart()) != 0u)
+                || (HSS_MemTestAddressBus((uint64_t *)HSS_DDRHi_GetStart(), HSS_DDRHi_GetSize()) != NULL)) {
+            result = false;
+        }
+        HSS_PerfCtr_Lap(perf_ctr_index_mem64);
     }
-    HSS_PerfCtr_Lap(perf_ctr_index_mem64);
 
     return result;
 }
@@ -248,9 +253,19 @@ bool HSS_MemTestDDRFull(void)
     bool result = HSS_MemTestDDRFast();
 
     if (result) {
-        if (HSS_MemTestDevice((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize()) != NULL) {
-            mHSS_FANCY_PRINTF(LOG_ERROR, "FAILED!\n");
-            result = false;
+        if (HSS_DDR_GetSize()) {
+            if (HSS_MemTestDevice((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize()) != NULL) {
+                mHSS_FANCY_PRINTF(LOG_ERROR, "FAILED!\n");
+                result = false;
+            }
+        }
+    }
+    if (result) {
+        if (HSS_DDRHi_GetSize()) {
+            if (HSS_MemTestDevice((uint64_t *)HSS_DDRHi_GetStart(), HSS_DDRHi_GetSize()) != NULL) {
+                mHSS_FANCY_PRINTF(LOG_ERROR, "FAILED!\n");
+                result = false;
+            }
         }
     }
 

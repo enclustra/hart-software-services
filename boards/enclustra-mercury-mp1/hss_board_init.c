@@ -190,8 +190,12 @@ bool HSS_BoardLateInit(void)
     // With ECC enabled, the DDR memory needs to be initialized to prevent from
     // bus errors caused by reading uninitialized memory
 #if LIBERO_SETTING_CFG_ECC_CORRECTION_EN == 1
-    ENC_InitializeMemory((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize());
-    ENC_InitializeMemory((uint64_t *)HSS_DDRHi_GetStart(), HSS_DDRHi_GetSize());
+    if (HSS_DDR_GetSize()) {
+        ENC_InitializeMemory((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize());
+    }
+    if (HSS_DDRHi_GetSize()) {
+        ENC_InitializeMemory((uint64_t *)HSS_DDRHi_GetStart(), HSS_DDRHi_GetSize());
+    }
 #endif
 
     return true;

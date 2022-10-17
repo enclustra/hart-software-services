@@ -4,7 +4,7 @@
       <design_name>MPFS250T_ES</design_name>
       <mpfs_part_no>MPFS250T_ES</mpfs_part_no>
       <mpfs_package>FCG1152</mpfs_package>
-      <creation_date_time>10-07-2022_11:19:59</creation_date_time>
+      <creation_date_time>10-17-2022_14:03:02</creation_date_time>
       <xml_format_version>0.6.5</xml_format_version>
     </design_information>
     <mss_memory_map>
@@ -2353,12 +2353,12 @@
       <segs>
         <registers>
           <register address="0x00000000" description="Cached access at 0x00_8000_0000 (-0x80+0x00) " name="SEG0_0">
-            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7F80</field>
+            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x0</field>
             <field Type="RW" name="RESERVED" offset="15" width="16">0x0</field>
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>
           <register address="0x00000004" description="Cached access at 0x10_0000_000" name="SEG0_1">
-            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7040</field>
+            <field Type="RW" name="ADDRESS_OFFSET" offset="0" width="15">0x7000</field>
             <field Type="RW" name="RESERVED" offset="15" width="16">0x0</field>
             <field Type="RW" name="LOCKED" offset="31" width="1">0x1</field>
           </register>

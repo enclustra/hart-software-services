@@ -88,7 +88,7 @@ To build the HSS binary, SoftConsole 2022.2 and Libero 2022.2 is required to be 
     ```
     - Export the path to fpgenprog tool
     ```
-    export FPGENPROG=~/Microchip/Libero_SoC_v2022.2/bin64/fpgenprog
+    export FPGENPROG=~/Microchip/Libero_SoC_v2022.2/Libero/bin64/fpgenprog
     ```
 
 3. Open a terminal, clone this git repository and change to the directory of the repository

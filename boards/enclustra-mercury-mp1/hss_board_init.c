@@ -133,8 +133,10 @@ void ENC_InitializeMemory(uint64_t *addr, uint32_t size)
 void ENC_ReleaseReset(void)
 {
     MSS_GPIO_init(GPIO0_LO);
-    MSS_GPIO_set_output(GPIO0_LO, MSS_GPIO_12, 1);
+    MSS_GPIO_set_output(GPIO0_LO, MSS_GPIO_12, 0);
     MSS_GPIO_config(GPIO0_LO, MSS_GPIO_12, MSS_GPIO_OUTPUT_MODE);
+    HSS_SpinDelay_MilliSecs(250);
+    MSS_GPIO_set_output(GPIO0_LO, MSS_GPIO_12, 1);
 }
 
 void ENC_InitEthPhy(void)

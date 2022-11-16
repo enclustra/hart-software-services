@@ -20,6 +20,17 @@ See [License](LICENSE.md)
 
 ## Modifications for Mercury+ MP1 product series
 
+### Support for Mercury+ MP1 product series
+
+Following product models are supported:
+
+- ME-MP1-250-EES-D3E
+- ME-MP1-250-EES-D3E-E1
+- ME-MP1-250-SI-D3EN
+- ME-MP1-250-SI-D3EN-E1
+- ME-MP1-460-1SI-D4E
+- ME-MP1-460-1SI-D4E-E1
+
 ### Ethernet PHY configuration
 
 At power up, the Ethernet PHYs located on the Mercury+ MP1 module are in power-down mode. The HSS reconfigures the INT#/PWDN# pin of the DP83867IS Ethernet PHY for interrupt functionality and releases the PHYs from power-down mode. 
@@ -63,10 +74,10 @@ To build the HSS binary, SoftConsole 2022.2 and Libero 2022.2 is required to be 
 
 5. Configure the project
 
-    - Copy one of the configuration files in **board/enclustra-mercury-mp1/** directory to the root directory (**hart-software-services/**) and rename the file to **.config**. One configuration file for each product variant is provided:
-        - me-mp1-250-ees-d3e_config
-        - me-mp1-250-si-d3en_config
-        - me-mp1-460-1si-d4e_config
+    - Copy one of the configuration files in **board/enclustra-mercury-mp1/** directory to the root directory (**hart-software-services/**) and rename the file to **.config**:
+        - me-mp1-250-ees-d3e_config (for **ME-MP1-250-EES-D3E** and **ME-MP1-250-EES-D3E-E1**)
+        - me-mp1-250-si-d3en_config (for **ME-MP1-250-SI-D3EN** and **ME-MP1-250-SI-D3EN-E1**)
+        - me-mp1-460-1si-d4e_config (for **ME-MP1-460-1SI-D4E** and **ME-MP1-460-1SI-D4E-E1**)
     - Select the **hart-software-services** project in the Project Explorer and open the project properties (**File** -> **Properties**)
     - Open **C/C++ Build** -> **Environment** tab and add following variable:
         - Name: **BOARD**

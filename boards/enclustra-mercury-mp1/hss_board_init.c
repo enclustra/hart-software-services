@@ -70,6 +70,7 @@ void ENC_init_mdio(MAC_TypeDef *mac_base);
 void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base);
 void ENC_write_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval);
 uint16_t ENC_read_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr);
+void ENC_select_uart(uint32_t uartNr);
 void ENC_InitializeMemory(uint64_t *addr, uint32_t size);
 void ENC_InitEthPhy(void);
 void ENC_ReleaseReset(void);
@@ -117,8 +118,31 @@ uint16_t ENC_read_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regadd
     return((uint16_t)phy_op);
 }
 
+void ENC_select_uart(uint32_t uartNr)
+{
+    typedef struct
+    {
+        volatile uint32_t GPIO_CFG[32];
+        volatile uint32_t GPIO_IRQ;
+        volatile uint32_t GPIO_ALIGN0[3];
+        volatile const uint32_t GPIO_IN;
+        volatile uint32_t GPIO_ALIGN1[3];
+        volatile uint32_t GPIO_OUT;
+    } FPGA_GPIO_TypeDef;
+
+    if (uartNr > 1) {
+        return;
+    }
+
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Switching to UART %i ...\n", uartNr);
+    FPGA_GPIO_TypeDef *gpio_base = (FPGA_GPIO_TypeDef*)UART_SEL_GPIO_BASE;
+    gpio_base->GPIO_CFG[0] = 0x5; // Configure to output
+    gpio_base->GPIO_OUT = uartNr; // Set output to 1 to select uart 1
+}
+
 bool HSS_BoardInit(void)
 {
+    ENC_select_uart(0);
     RunInitFunctions(ARRAY_SIZE(boardInitFunctions), boardInitFunctions);
 
     return true;
@@ -205,21 +229,7 @@ bool HSS_BoardLateInit(void)
 
 bool HSS_BoardHandoff(void)
 {
-    typedef struct
-    {
-        volatile uint32_t GPIO_CFG[32];
-        volatile uint32_t GPIO_IRQ;
-        volatile uint32_t GPIO_ALIGN0[3];
-        volatile const uint32_t GPIO_IN;
-        volatile uint32_t GPIO_ALIGN1[3];
-        volatile uint32_t GPIO_OUT;
-    } FPGA_GPIO_TypeDef;
-
-    // Switch to uart 1
-    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Switching to UART 1 ...\n");
-    FPGA_GPIO_TypeDef *gpio_base = (FPGA_GPIO_TypeDef*)UART_SEL_GPIO_BASE;
-    gpio_base->GPIO_CFG[0] = 0x5; // Configure to output
-    gpio_base->GPIO_OUT = 0x1; // Set output to 1 to select uart 1
+    ENC_select_uart(1);
 
     return true;
 }

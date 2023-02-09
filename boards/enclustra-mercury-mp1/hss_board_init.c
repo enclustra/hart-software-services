@@ -64,7 +64,7 @@ const struct InitFunction /*@null@*/ boardInitFunctions[] = {
 /****************************************************************************/
 
 #define MSS_MAC1_BASE (0x20112000U)
-#define UART_SEL_GPIO_BASE (0x42000000U)
+#define UART_SEL_GPIO_BASE (0x41000000U)
 
 void ENC_init_mdio(MAC_TypeDef *mac_base);
 void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base);

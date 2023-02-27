@@ -105,7 +105,7 @@ To build the HSS binary, SoftConsole 2022.2 and Libero 2022.2 is required to be 
 3. Open a terminal, clone this git repository and change to the directory of the repository
 
 ```
-git clone TODO/hart-software-services
+git clone git@github.com:enclustra/hart-software-services.git
 cd hart-software-services
 ```
 

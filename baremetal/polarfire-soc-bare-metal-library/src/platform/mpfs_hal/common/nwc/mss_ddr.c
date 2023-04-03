@@ -32,9 +32,10 @@
  * Local Defines
  */
 /* This string is updated if any change to ddr driver */
-#define DDR_DRIVER_VERSION_STRING   "0.4.018"
+#define DDR_DRIVER_VERSION_STRING   "0.4.019"
 const char DDR_DRIVER_VERSION[] = DDR_DRIVER_VERSION_STRING;
 /* Version     |  Comment                                                     */
+/* 0.4.019     |  Added full memory initalization function                    */
 /* 0.4.018     |  Corrected error introduced for DDR3 in 0.4.14               */
 /* 0.4.017     |  made SW_TRAING_BCLK_SCLK_OFFSET seperate for each mem type  */
 /* 0.4.016     |  DDR3-Added support for DDR3L removed in v0.3.027            */
@@ -312,6 +313,7 @@ static uint32_t ddr_setup(void)
     DDR_TYPE ddr_type;
     uint32_t ret_status = 0U;
     uint8_t number_of_lanes_to_calibrate;
+    uint64_t mem_size;
 
     ddr_type = LIBERO_SETTING_DDRPHY_MODE & DDRPHY_MODE_MASK;
 
@@ -1106,7 +1108,6 @@ static uint32_t ddr_setup(void)
                         }
                         else
                         {
-                            //vref_answer = vref_answer;
                             dpc_bits_new=( CFG_DDR_SGMII_PHY->DPC_BITS.DPC_BITS & 0xFFFC0FFF ) | (vref_answer <<12) | (0x1<<18U);
                         }
 
@@ -1870,7 +1871,9 @@ static uint32_t ddr_setup(void)
             }
             break;
         case DDR_LOAD_PATTERN_TO_CACHE:
-            load_ddr_pattern(LIBERO_SETTING_DDR_32_CACHE, SIZE_OF_PATTERN_TEST*2, SIZE_OF_PATTERN_OFFSET);
+            load_ddr_pattern(LIBERO_SETTING_DDR_32_CACHE,\
+                    SIZE_OF_PATTERN_TEST*2, DDR_TEST_FILL,\
+                        SIZE_OF_PATTERN_OFFSET);
             if(error == 0U)
             {
                 ddr_training_state = DDR_VERIFY_PATTERN_IN_CACHE;
@@ -2029,6 +2032,33 @@ static uint32_t ddr_setup(void)
                 ddr_error_count++;
             }
 #endif
+            ddr_training_state = DDR_TRAINING_INIT_ALL_MEMORY;
+            break;
+
+        case DDR_TRAINING_INIT_ALL_MEMORY:
+#ifdef DEBUG_DDR_INIT
+            mem_size = LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_1 +\
+                (LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_0 + 1U);
+            (void)uprint64(g_debug_uart, "  Init memory, size = , 0x",\
+                    (uint64_t)mem_size);
+#endif
+
+#ifndef ENABLE_MEM_INIT_NON_ECC
+            /* Check if using ECC, if so, init all memory */
+            if ((LIBERO_SETTING_DDRPHY_MODE & DDRPHY_MODE_ECC_MASK) ==\
+                    DDRPHY_MODE_ECC_ON)
+            {
+                mem_size = LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_1 +\
+                        (LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_0 + 1U);
+                load_ddr_pattern(LIBERO_SETTING_DDR_64_NON_CACHE, mem_size,\
+                        DDR_INIT_FILL, 0U);
+            }
+#else
+            mem_size = LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_1 +\
+                    (LIBERO_SETTING_CFG_AXI_END_ADDRESS_AXI2_0 + 1U);
+            load_ddr_pattern(LIBERO_SETTING_DDR_64_NON_CACHE, mem_size,\
+                    DDR_INIT_FILL, 0U);
+#endif
             ddr_training_state = DDR_TRAINING_FINISH_CHECK;
             break;
 
@@ -2036,10 +2066,13 @@ static uint32_t ddr_setup(void)
             /*
              *   return status
              */
-            ddr_diag.train_time = (uint64_t)(rdcycle() - training_start_cycle) / (LIBERO_SETTING_MSS_COREPLEX_CPU_CLK/1000);
+            ddr_diag.train_time = (uint64_t)(rdcycle() - training_start_cycle)\
+                / (LIBERO_SETTING_MSS_COREPLEX_CPU_CLK/1000);
 #ifdef DEBUG_DDR_INIT
-            (void)uprint32(g_debug_uart, "\n\r ddr train time (ms): ", (uint32_t)ddr_diag.train_time);
-            (void)uprint32(g_debug_uart, "\n\r Number of retrains: ", ddr_diag.num_retrains);
+            (void)uprint32(g_debug_uart, "\n\r ddr train time (ms): ",\
+                    (uint32_t)ddr_diag.train_time);
+            (void)uprint32(g_debug_uart, "\n\r Number of retrains: ",\
+                    ddr_diag.num_retrains);
             {
                 tip_register_status (g_debug_uart);
                 uprint(g_debug_uart, "\n\r\n\r DDR_TRAINING_PASS: ");
@@ -2059,6 +2092,7 @@ static uint32_t ddr_setup(void)
                  * Configure Segments- address mapping,  CFG0/CFG1
                  */
                 setup_ddr_segments(LIBERO_SEG_SETUP);
+                clear_bootup_cache_ways();
             }
             ret_status |= DDR_SETUP_DONE;
             ddr_training_state = DDR_TRAINING_FINISHED;
@@ -2612,7 +2646,7 @@ static uint8_t memory_tests(void)
                                       mult by (4 lanes) */
     {
         SIM_FEEDBACK1(shift_walking_one);
-        start_address = (uint64_t)(0xC0000000U + (0x1U<<shift_walking_one));
+        start_address = (uint64_t)(BASE_ADDRESS_NON_CACHED_32_DDR + (0x1U<<shift_walking_one));
         error = rw_sanity_chk((uint64_t *)start_address , (uint32_t)0x5U);
 
         if(error)
@@ -2630,7 +2664,7 @@ static uint8_t memory_tests(void)
     while(shift_walking_one <= 28U) //28 => 1G
     {
         SIM_FEEDBACK1(shift_walking_one);
-        start_address = (uint64_t)(0x1400000000U + (0x1U<<shift_walking_one));
+        start_address = (uint64_t)(BASE_ADDRESS_NON_CACHED_64_DDR + (0x1U<<shift_walking_one));
         error = rw_sanity_chk((uint64_t *)start_address , (uint32_t)0x5U);
 
         if(error)
@@ -2642,7 +2676,7 @@ static uint8_t memory_tests(void)
         /* check upper bound */
         if(shift_walking_one >= 4U)
         {
-            start_address = (uint64_t)(0x1400000000U + \
+            start_address = (uint64_t)(BASE_ADDRESS_NON_CACHED_64_DDR + \
                     (((0x1U<<(shift_walking_one +1)) - 1U) -0x0F) );
             error = rw_sanity_chk((uint64_t *)start_address , (uint32_t)0x5U);
 
@@ -3591,10 +3625,10 @@ static uint8_t MTC_test(uint8_t mask, uint64_t start_address, uint32_t size, MTC
         if (mask & 0x1U)
         {
             DDRCFG->MEM_TEST.MT_ERROR_MASK_0.MT_ERROR_MASK_0 &= 0xFFFFFF00U;
-                DDRCFG->MEM_TEST.MT_ERROR_MASK_1.MT_ERROR_MASK_1 &= 0xFFFFF00FU;
-                DDRCFG->MEM_TEST.MT_ERROR_MASK_2.MT_ERROR_MASK_2 &= 0xFFFF00FFU;
-                DDRCFG->MEM_TEST.MT_ERROR_MASK_3.MT_ERROR_MASK_3 &= 0xFFF00FFFU;
-                DDRCFG->MEM_TEST.MT_ERROR_MASK_4.MT_ERROR_MASK_4 &= 0xFFFFFFFFU;
+            DDRCFG->MEM_TEST.MT_ERROR_MASK_1.MT_ERROR_MASK_1 &= 0xFFFFF00FU;
+            DDRCFG->MEM_TEST.MT_ERROR_MASK_2.MT_ERROR_MASK_2 &= 0xFFFF00FFU;
+            DDRCFG->MEM_TEST.MT_ERROR_MASK_3.MT_ERROR_MASK_3 &= 0xFFF00FFFU;
+            DDRCFG->MEM_TEST.MT_ERROR_MASK_4.MT_ERROR_MASK_4 &= 0xFFFFFFFFU;
         }
         if (mask & 0x2U)
         {
@@ -4344,6 +4378,13 @@ static void init_ddrc(void)
 /**
  * setup_ddr_segments(void)
  * setup segment registers- translated DDR address as user requires
+ *
+ * This should only be called by the boot-loader
+ *
+ * Assumption: We are calling this during early boot.
+ * We have complete control of the PDMA.
+ * Only the PDMS and the hart calling this function have written to the DDR
+ * at this point.
  */
 void setup_ddr_segments(SEG_SETUP option)
 {
@@ -4355,6 +4396,14 @@ void setup_ddr_segments(SEG_SETUP option)
         SEG[1].u[3].raw = (INIT_SETTING_SEG1_3 & 0x7FFFUL);
         SEG[1].u[4].raw = (INIT_SETTING_SEG1_4 & 0x7FFFUL);
         SEG[1].u[5].raw = (INIT_SETTING_SEG1_5 & 0x7FFFUL);
+        /*
+         * disable ddr blocker
+         * Is cleared at reset. When written to '1' disables the blocker function
+         * allowing the L2 cache controller to access the DDRC. Once written to '1'
+         * the register cannot be written to 0, only an MSS reset will clear the
+         * register
+         */
+        SEG[0].u[7].raw = 0x01U;
     }
     else
     {
@@ -4364,15 +4413,48 @@ void setup_ddr_segments(SEG_SETUP option)
         SEG[1].u[3].raw = (LIBERO_SETTING_SEG1_3 & 0x7FFFUL);
         SEG[1].u[4].raw = (LIBERO_SETTING_SEG1_4 & 0x7FFFUL);
         SEG[1].u[5].raw = (LIBERO_SETTING_SEG1_5 & 0x7FFFUL);
+        /*
+         * disable ddr blocker
+         * Is cleared at reset. When written to '1' disables the blocker function
+         * allowing the L2 cache controller to access the DDRC. Once written to '1'
+         * the register cannot be written to 0, only an MSS reset will clear the
+         * register
+         */
+        SEG[0].u[7].raw = 0x01U;
+        /*
+         * Clear the cache. Cache may have residue of writes related to the previous
+         * seg setup. These can endup being written back to DDR, so make sure cache
+         * is flushed. The cache is flushed by reading 2MB from cached backed memory
+         * We need to read from each master that has accessesed the cache, as all
+         * masters may not have access to all the cache ways.
+         * When this function is being called, it is fare to assume only this hart
+         * and the PDMA has accessed the cache.
+         * We also assume this is in the bootloader and we have sole access to the
+         * PDMA
+         */
     }
-    /*
-     * disable ddr blocker
-     * Is cleared at reset. When written to '1' disables the blocker function
-     * allowing the L2 cache controller to access the DDRC. Once written to '1'
-     * the register cannot be written to 0, only an MSS reset will clear the
-     * register
-     */
-    SEG[0].u[7].raw = 0x01U;
+}
+
+/**
+ * Clear cache ways used buring boot.
+ * These are the ways associated with the PDMA and the current hart being run
+ *
+ * Assumption: We are calling this during early boot.
+ * We have complete control of the PDMA.
+ * Only the PDMA and the hart calling this function have written to the DDR
+ * at this point.
+ */
+__attribute__((weak)) void clear_bootup_cache_ways(void)
+{
+    // ASSERT(my_num_cache_ways() == num_cache_ways());
+
+    /* clear using pdma routine, uses the 4 channels */
+    load_ddr_pattern(LIBERO_SETTING_DDR_32_CACHE, TWO_MBYTES*4, DDR_INIT_FILL,
+                     0U);
+    /* clear using my d-cache ways */
+    fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_32_DDR,
+                               (void *)(BASE_ADDRESS_CACHED_32_DDR +
+                                        TWO_MBYTES));
 }
 
 /**
@@ -5182,7 +5264,6 @@ static void lpddr4_manual_training(DDR_TYPE ddr_type, uint8_t * refclk_sweep_ind
         }
         else
         {
-            //vref_answer = vref_answer;
             dpc_bits_new=( CFG_DDR_SGMII_PHY->DPC_BITS.DPC_BITS & 0xFFFC0FFF ) | (vref_answer <<12) | (0x1<<18U);
         }
 

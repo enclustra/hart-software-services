@@ -140,16 +140,31 @@ __attribute__((pure)) static inline uint32_t logical_to_physical_address_(const 
 
     const uint16_t logical_block_num = logical_addr / blockSize;
     const uint32_t remainder = logical_addr % blockSize;
-    const uint16_t physical_block_number = pLogicalToPhysicalMap[logical_block_num];
+    uint16_t physical_block_number = pLogicalToPhysicalMap[logical_block_num];
+    uint32_t result = (physical_block_number * blockSize) + remainder;
 
-    const uint32_t result = (physical_block_number * blockSize) + remainder;
+    if (physical_block_number > blockCount) {
+        mHSS_DEBUG_PRINTF(LOG_ERROR, "Corruption in logical to physical block mapping: %d\n", physical_block_number);
+        build_bad_block_map_();
+        // retry
+        physical_block_number = pLogicalToPhysicalMap[logical_block_num];
+        mHSS_DEBUG_PRINTF(LOG_ERROR, "Second attempt at physical block mapping: %d\n", physical_block_number);
+        result = (physical_block_number * blockSize) + remainder;
+    }
 
     return result;
 }
 
 __attribute__((pure)) static inline uint32_t logical_to_physical_block_(const uint32_t logical_block)
 {
-    const uint32_t result = pLogicalToPhysicalMap[logical_block];
+    uint32_t result = pLogicalToPhysicalMap[logical_block];
+    if (result > blockCount) {
+        mHSS_DEBUG_PRINTF(LOG_ERROR, "Corruption in logical to physical block mapping: %d\n", result);
+        build_bad_block_map_();
+        // retry
+        result = pLogicalToPhysicalMap[logical_block];
+        mHSS_DEBUG_PRINTF(LOG_ERROR, "Second attempt at physical block mapping: %d\n", result);
+    }
 
     return result;
 }
@@ -261,6 +276,9 @@ static void copyCacheToFlashBlocks_(size_t byteOffset, size_t byteCount)
 bool HSS_QSPIInit(void)
 {
     if (!qspiInitialized) {
+        extern void clear_bootup_cache_ways(void);
+        clear_bootup_cache_ways();
+
         /* read and output Flash ID as a sanity test */
         (void)mss_config_clk_rst(MSS_PERIPH_QSPIXIP, (uint8_t) 0u, PERIPHERAL_ON);
 
@@ -332,17 +350,17 @@ bool HSS_QSPIInit(void)
             // mHSS_DEBUG_PRINTF(LOG_NORMAL, "pLogicalBlockDesc: %p\n", pLogicalBlockDesc);
             // mHSS_DEBUG_PRINTF(LOG_NORMAL, "pCacheDataBuffer: %p\n", pCacheDataBuffer);
 
-                //
-                // check for bad blocks and reduce the number of blocks accordingly...
-                // our caches and logical block descriptors above may now be slightly too large, but this
-                // is of no consequence
+            //
+            // check for bad blocks and reduce the number of blocks accordingly...
+            // our caches and logical block descriptors above may now be slightly too large, but this
+            // is of no consequence
 
-                build_bad_block_map_();
-                blockCount -= numBadBlocks; // adjust block count to take account of bad blocks
-                pageCount = qspiFlashes[qspiIndex].pagesPerBlock * blockCount;
-                dieSize = blockSize * blockCount;
+            build_bad_block_map_();
+            blockCount -= numBadBlocks; // adjust block count to take account of bad blocks
+            pageCount = qspiFlashes[qspiIndex].pagesPerBlock * blockCount;
+            dieSize = blockSize * blockCount;
 
-                // mHSS_DEBUG_PRINTF(LOG_NORMAL, "blockCount (after bad blocks): %u\n", blockCount);
+            // mHSS_DEBUG_PRINTF(LOG_NORMAL, "blockCount (after bad blocks): %u\n", blockCount);
 
             mHSS_DEBUG_PRINTF(LOG_NORMAL, "Initialized Flash\n");
             qspiInitialized = true;

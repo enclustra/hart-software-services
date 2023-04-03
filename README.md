@@ -13,10 +13,11 @@ See [License](LICENSE.md)
 
 ## Changelog
 
-| Date       | Version | Comment               |
-|------------|---------|-----------------------|
-| 26.07.2022 | 2021.11 | First version         |
-| 10.11.2022 | 2022.09 | Memory layout changed |
+| Date       | Version  | Comment               |
+|------------|----------|-----------------------|
+| 26.07.2022 | 2021.11  | First version         |
+| 10.11.2022 | 2022.09  | Memory layout changed |
+| 03.04.2023 | 2023.02  | Update to 2023.02.1   |
 
 ## Modifications for Mercury+ MP1 product series
 

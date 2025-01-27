@@ -1,11 +1,11 @@
   <mss xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="mpfs_hw_description.xsd">
     <design_information>
-      <libero_version>2022.2</libero_version>
+      <libero_version>2024.2</libero_version>
       <design_name>MPFS250TS</design_name>
       <mpfs_part_no>MPFS250TS</mpfs_part_no>
       <mpfs_package>FCG1152</mpfs_package>
-      <creation_date_time>02-20-2023_18:29:56</creation_date_time>
-      <xml_format_version>0.6.5</xml_format_version>
+      <creation_date_time>01-27-2025_09:57:00</creation_date_time>
+      <xml_format_version>0.6.8</xml_format_version>
     </design_information>
     <mss_memory_map>
       <map>
@@ -1440,7 +1440,7 @@
             <field Type="RW" name="SD_CONFIGURED" offset="1" width="1">0x1</field>
             <field Type="RW" name="DEFAULT_ON_START" offset="2" width="1">0x1</field>
           </register>
-          <register address="0x0000027C" description="To limit the number of interrupts fed to the PLINT, the seventy GPIO interrupts (GPIO0=14, GPIO1=24, GPIO2=32) are multiplexed down to 41 interrupts. The muxing is controlled by a 32-bit system register (GPIO_INTERRUPT_FAB_CR).  For example, if bit 0 of thei register is set to 1, gpio2_0 is chosen as a direct interrupt and gpio0_0 will be added to the muxed interrupt for gpio0. Please see the GPIO driver for more detail." name="GPIO_INTERRUPT_FAB_CR">
+          <register address="0x0000027C" description="To limit the number of interrupts fed to the PLINT, the seventy GPIO interrupts (GPIO0=14, GPIO1=24, GPIO2=32) are reduced down to 41 interrupts by OR'ing some together. There is some flexibility regarding which interrupts are OR'd or are direct. This selection is controlled by a 32-bit system register(GPIO_INTERRUPT_FAB_CR). For example, if bit 0 of the register is set to 1, gpio2_0 is chosen as a direct interrupt on the PLIC and gpio0_0 will be OR'd with any other non-direct gpio0 interrupts. Please see the GPIO driver for more details on using GPIO interrupts." name="GPIO_INTERRUPT_FAB_CR">
             <field Type="RW" name="GPIO0_0_OR_GPIO2_0" offset="0" width="1">0x0</field>
             <field Type="RW" name="GPIO0_1_OR_GPIO2_1" offset="1" width="1">0x0</field>
             <field Type="RW" name="GPIO0_2_OR_GPIO2_2" offset="2" width="1">0x0</field>
@@ -1681,7 +1681,7 @@
             <field Type="RW" name="DPC_IO_CFG_LP_BYPASS_EN" offset="14" width="1">0x0</field>
             <field Type="R" name="RESERVED" offset="15" width="17">0x0</field>
           </register>
-          <register address="0x0000027C" description="To limit the number of interrupts fed to the PLINT, the seventy GPIO interrupts (GPIO0=14, GPIO1=24, GPIO2=32) are multiplexed down to 41 interrupts. The muxing is controlled by a 32-bit system register (GPIO_INTERRUPT_FAB_CR).  For example, if bit 0 of thei register is set to 1, gpio2_0 is chosen as a direct interrupt and gpio0_0 will be added to the muxed interrupt for gpio0. Please see the GPIO driver for more detail." name="ALT_GPIO_INTERRUPT_FAB_CR">
+          <register address="0x0000027C" description="To limit the number of interrupts fed to the PLINT, the seventy GPIO interrupts (GPIO0=14, GPIO1=24, GPIO2=32) are reduced down to 41 interrupts by OR'ing some together. There is some flexibility regarding which interrupts are OR'd or are direct. This selection is controlled by a 32-bit system register(GPIO_INTERRUPT_FAB_CR). For example, if bit 0 of the register is set to 1, gpio2_0 is chosen as a direct interrupt on the PLIC and gpio0_0 will be OR'd with any other non-direct gpio0 interrupts. Please see the GPIO driver for more details on using GPIO interrupts." name="ALT_GPIO_INTERRUPT_FAB_CR">
             <field Type="RW" name="GPIO0_0_OR_GPIO2_0" offset="0" width="1">0x0</field>
             <field Type="RW" name="GPIO0_1_OR_GPIO2_1" offset="1" width="1">0x0</field>
             <field Type="RW" name="GPIO0_2_OR_GPIO2_2" offset="2" width="1">0x0</field>
@@ -1920,8 +1920,203 @@
             <field Type="RW" name="READ_GATE_MIN_READS" offset="13" width="9">0x7F</field>
             <field Type="RW" name="ADDRCMD_WAIT_COUNT" offset="22" width="9"> 0x1F</field>
           </register>
-          <register address="10" description="in simulation we need to set this to 2, for hardware it will be dependent on the trace lengths" name="TIP_CONFIG_PARAMS_BCLK_VCOPHS_OFFSET">
+          <register address="12" description="in simulation we need to set this to 2, for hardware it will be dependent on the trace lengths" name="TIP_CONFIG_PARAMS_BCLK_VCOPHS_OFFSET">
             <field Type="RW" name="TIP_CONFIG_PARAMS_BCLK_VCOPHS" offset="0" width="32">0x02</field>
+          </register>
+          <register address="16" description="Number of offsets used when training" name="REFCLK_DDR3_1333_NUM_OFFSETS">
+            <field Type="RW" name="REFCLK_DDR3_1333_NUM_OFFSETS" offset="0" width="32">3</field>
+          </register>
+          <register address="20" description="Number of offsets used when training" name="REFCLK_DDR3L_1333_NUM_OFFSETS">
+            <field Type="RW" name="REFCLK_DDR3L_1333_NUM_OFFSETS" offset="0" width="32">3</field>
+          </register>
+          <register address="24" description="Number of offsets used when training" name="REFCLK_DDR4_1600_NUM_OFFSETS">
+            <field Type="RW" name="REFCLK_DDR4_1600_NUM_OFFSETS" offset="0" width="32">4</field>
+          </register>
+          <register address="28" description="Number of offsets used when training" name="REFCLK_LPDDR3_1600_NUM_OFFSETS">
+            <field Type="RW" name="REFCLK_LPDDR3_1600_NUM_OFFSETS" offset="0" width="32">3</field>
+          </register>
+          <register address="32" description="Number of offsets used when training" name="REFCLK_LPDDR4_1600_NUM_OFFSETS">
+            <field Type="RW" name="REFCLK_LPDDR4_1600_NUM_OFFSETS" offset="0" width="32">1</field>
+          </register>
+          <register address="36" description="Number of offsets used when training" name="REFCLK_DDR3_1067_NUM_OFFSETS">
+            <field Type="RW" name="REFCLK_DDR3_1067_NUM_OFFSETS" offset="0" width="32">1</field>
+          </register>
+          <register address="40" description="Number of offsets used when training" name="REFCLK_DDR3L_1067_NUM_OFFSETS">
+            <field Type="RW" name="REFCLK_DDR3L_1067_NUM_OFFSETS" offset="0" width="32">1</field>
+          </register>
+          <register address="44" description="Number of offsets used when training" name="REFCLK_DDR4_1333_NUM_OFFSETS">
+            <field Type="RW" name="REFCLK_DDR4_1333_NUM_OFFSETS" offset="0" width="32">4</field>
+          </register>
+          <register address="48" description="Number of offsets used when training" name="REFCLK_LPDDR3_1333_NUM_OFFSETS">
+            <field Type="RW" name="REFCLK_LPDDR3_1333_NUM_OFFSETS" offset="0" width="32">2</field>
+          </register>
+          <register address="52" description="Number of offsets used when training" name="REFCLK_LPDDR4_1333_NUM_OFFSETS">
+            <field Type="RW" name="REFCLK_LPDDR4_1333_NUM_OFFSETS" offset="0" width="32">3</field>
+          </register>
+          <register address="56" description="offset for iteration  0" name="REFCLK_DDR3_1333_OFFSET_0">
+            <field Type="RW" name="REFCLK_DDR3_1333_OFFSET_0" offset="0" width="32">0</field>
+          </register>
+          <register address="60" description="offset for  iteration  1" name="REFCLK_DDR3_1333_OFFSET_1">
+            <field Type="RW" name="REFCLK_DDR3_1333_OFFSET_1" offset="0" width="32">1</field>
+          </register>
+          <register address="64" description="offset for  iteration  2" name="REFCLK_DDR3_1333_OFFSET_2">
+            <field Type="RW" name="REFCLK_DDR3_1333_OFFSET_2" offset="0" width="32">7</field>
+          </register>
+          <register address="68" description="offset for  iteration  3" name="REFCLK_DDR3_1333_OFFSET_3">
+            <field Type="RW" name="REFCLK_DDR3_1333_OFFSET_3" offset="0" width="32">0</field>
+          </register>
+          <register address="72" description="offset for iteration  0" name="REFCLK_DDR3L_1333_OFFSET_0">
+            <field Type="RW" name="REFCLK_DDR3L_1333_OFFSET_0" offset="0" width="32">0</field>
+          </register>
+          <register address="76" description="offset for  iteration  1" name="REFCLK_DDR3L_1333_OFFSET_1">
+            <field Type="RW" name="REFCLK_DDR3L_1333_OFFSET_1" offset="0" width="32">1</field>
+          </register>
+          <register address="80" description="offset for  iteration  2" name="REFCLK_DDR3L_1333_OFFSET_2">
+            <field Type="RW" name="REFCLK_DDR3L_1333_OFFSET_2" offset="0" width="32">0</field>
+          </register>
+          <register address="84" description="offset for  iteration  3" name="REFCLK_DDR3L_1333_OFFSET_3">
+            <field Type="RW" name="REFCLK_DDR3L_1333_OFFSET_3" offset="0" width="32">0</field>
+          </register>
+          <register address="88" description="offset for iteration  0" name="REFCLK_DDR4_1600_OFFSET_0">
+            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_0" offset="0" width="32">7</field>
+          </register>
+          <register address="92" description="offset for  iteration  1" name="REFCLK_DDR4_1600_OFFSET_1">
+            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_1" offset="0" width="32">6</field>
+          </register>
+          <register address="96" description="offset for  iteration  2" name="REFCLK_DDR4_1600_OFFSET_2">
+            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_2" offset="0" width="32">5</field>
+          </register>
+          <register address="100" description="offset for  iteration  3" name="REFCLK_DDR4_1600_OFFSET_3">
+            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_3" offset="0" width="32">0</field>
+          </register>
+          <register address="104" description="offset for iteration  0" name="REFCLK_LPDDR3_1600_OFFSET_0">
+            <field Type="RW" name="REFCLK_LPDDR3_1600_OFFSET_0" offset="0" width="32">7</field>
+          </register>
+          <register address="108" description="offset for  iteration  1" name="REFCLK_LPDDR3_1600_OFFSET_1">
+            <field Type="RW" name="REFCLK_LPDDR3_1600_OFFSET_1" offset="0" width="32">0</field>
+          </register>
+          <register address="112" description="offset for  iteration  2" name="REFCLK_LPDDR3_1600_OFFSET_2">
+            <field Type="RW" name="REFCLK_LPDDR3_1600_OFFSET_2" offset="0" width="32">1</field>
+          </register>
+          <register address="116" description="offset for  iteration  3" name="REFCLK_LPDDR3_1600_OFFSET_3">
+            <field Type="RW" name="REFCLK_LPDDR3_1600_OFFSET_3" offset="0" width="32">2</field>
+          </register>
+          <register address="120" description="offset for iteration  0" name="REFCLK_LPDDR4_1600_OFFSET_0">
+            <field Type="RW" name="REFCLK_LPDDR4_1600_OFFSET_0" offset="0" width="32">3</field>
+          </register>
+          <register address="124" description="offset for  iteration  1" name="REFCLK_LPDDR4_1600_OFFSET_1">
+            <field Type="RW" name="REFCLK_LPDDR4_1600_OFFSET_1" offset="0" width="32">4</field>
+          </register>
+          <register address="128" description="offset for  iteration  2" name="REFCLK_LPDDR4_1600_OFFSET_2">
+            <field Type="RW" name="REFCLK_LPDDR4_1600_OFFSET_2" offset="0" width="32">2</field>
+          </register>
+          <register address="132" description="offset for  iteration  3" name="REFCLK_LPDDR4_1600_OFFSET_3">
+            <field Type="RW" name="REFCLK_LPDDR4_1600_OFFSET_3" offset="0" width="32">5</field>
+          </register>
+          <register address="136" description="offset for iteration  0" name="REFCLK_DDR3_1067_OFFSET_0">
+            <field Type="RW" name="REFCLK_DDR3_1067_OFFSET_0" offset="0" width="32">1</field>
+          </register>
+          <register address="140" description="offset for  iteration  1" name="REFCLK_DDR3_1067_OFFSET_1">
+            <field Type="RW" name="REFCLK_DDR3_1067_OFFSET_1" offset="0" width="32">2</field>
+          </register>
+          <register address="144" description="offset for  iteration  2" name="REFCLK_DDR3_1067_OFFSET_2">
+            <field Type="RW" name="REFCLK_DDR3_1067_OFFSET_2" offset="0" width="32">3</field>
+          </register>
+          <register address="148" description="offset for  iteration  3" name="REFCLK_DDR3_1067_OFFSET_3">
+            <field Type="RW" name="REFCLK_DDR3_1067_OFFSET_3" offset="0" width="32">2</field>
+          </register>
+          <register address="152" description="offset for iteration  0" name="REFCLK_DDR3L_1067_OFFSET_0">
+            <field Type="RW" name="REFCLK_DDR3L_1067_OFFSET_0" offset="0" width="32">1</field>
+          </register>
+          <register address="156" description="offset for  iteration  1" name="REFCLK_DDR3L_1067_OFFSET_1">
+            <field Type="RW" name="REFCLK_DDR3L_1067_OFFSET_1" offset="0" width="32">2</field>
+          </register>
+          <register address="160" description="offset for  iteration  2" name="REFCLK_DDR3L_1067_OFFSET_2">
+            <field Type="RW" name="REFCLK_DDR3L_1067_OFFSET_2" offset="0" width="32">3</field>
+          </register>
+          <register address="164" description="offset for  iteration  3" name="REFCLK_DDR3L_1067_OFFSET_3">
+            <field Type="RW" name="REFCLK_DDR3L_1067_OFFSET_3" offset="0" width="32">2</field>
+          </register>
+          <register address="168" description="offset for iteration  0" name="REFCLK_DDR4_1333_OFFSET_0">
+            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_0" offset="0" width="32">0</field>
+          </register>
+          <register address="172" description="offset for  iteration  1" name="REFCLK_DDR4_1333_OFFSET_1">
+            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_1" offset="0" width="32">1</field>
+          </register>
+          <register address="176" description="offset for  iteration  2" name="REFCLK_DDR4_1333_OFFSET_2">
+            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_2" offset="0" width="32">6</field>
+          </register>
+          <register address="180" description="offset for  iteration  3" name="REFCLK_DDR4_1333_OFFSET_3">
+            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_3" offset="0" width="32">7</field>
+          </register>
+          <register address="184" description="offset for iteration  0" name="REFCLK_LPDDR3_1333_OFFSET_0">
+            <field Type="RW" name="REFCLK_LPDDR3_1333_OFFSET_0" offset="0" width="32">0</field>
+          </register>
+          <register address="188" description="offset for  iteration  1" name="REFCLK_LPDDR3_1333_OFFSET_1">
+            <field Type="RW" name="REFCLK_LPDDR3_1333_OFFSET_1" offset="0" width="32">1</field>
+          </register>
+          <register address="192" description="offset for  iteration  2" name="REFCLK_LPDDR3_1333_OFFSET_2">
+            <field Type="RW" name="REFCLK_LPDDR3_1333_OFFSET_2" offset="0" width="32">6</field>
+          </register>
+          <register address="196" description="offset for  iteration  3" name="REFCLK_LPDDR3_1333_OFFSET_3">
+            <field Type="RW" name="REFCLK_LPDDR3_1333_OFFSET_3" offset="0" width="32">0</field>
+          </register>
+          <register address="200" description="offset for iteration  0" name="REFCLK_LPDDR4_1333_OFFSET_0">
+            <field Type="RW" name="REFCLK_LPDDR4_1333_OFFSET_0" offset="0" width="32">2</field>
+          </register>
+          <register address="204" description="offset for  iteration  1" name="REFCLK_LPDDR4_1333_OFFSET_1">
+            <field Type="RW" name="REFCLK_LPDDR4_1333_OFFSET_1" offset="0" width="32">1</field>
+          </register>
+          <register address="208" description="offset for  iteration  2" name="REFCLK_LPDDR4_1333_OFFSET_2">
+            <field Type="RW" name="REFCLK_LPDDR4_1333_OFFSET_2" offset="0" width="32">3</field>
+          </register>
+          <register address="212" description="offset for  iteration  3" name="REFCLK_LPDDR4_1333_OFFSET_3">
+            <field Type="RW" name="REFCLK_LPDDR4_1333_OFFSET_3" offset="0" width="32">0</field>
+          </register>
+          <register address="216" description="Zero degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR3">
+            <field Type="RW" name="ZERO_DEGRESS_ORDER" offset="0" width="32">0</field>
+          </register>
+          <register address="220" description="Zero degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR3L">
+            <field Type="RW" name="ZERO_DEGRESS_ORDER" offset="0" width="32">0</field>
+          </register>
+          <register address="224" description="Zero degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR4">
+            <field Type="RW" name="ZERO_DEGRESS_ORDER" offset="0" width="32">0x0</field>
+          </register>
+          <register address="228" description="Zero degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_0_DEG_LPDDR3">
+            <field Type="RW" name="ZERO_DEGRESS_ORDER" offset="0" width="32">0</field>
+          </register>
+          <register address="232" description="Zero degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_0_DEG_LPDDR4">
+            <field Type="RW" name="ZERO_DEGRESS_ORDER" offset="0" width="32">0</field>
+          </register>
+          <register address="236" description="Forty five degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR3">
+            <field Type="RW" name="FORTY_FIVE_DEGRESS_ORDER" offset="0" width="32">1</field>
+          </register>
+          <register address="240" description="Forty five degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR3L">
+            <field Type="RW" name="FORTY_FIVE_DEGRESS_ORDER" offset="0" width="32">1</field>
+          </register>
+          <register address="244" description="Forty five degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR4">
+            <field Type="RW" name="FORTY_FIVE_DEGRESS_ORDER" offset="0" width="32">0x1</field>
+          </register>
+          <register address="248" description="Forty five degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_45_DEG_LPDDR3">
+            <field Type="RW" name="FORTY_FIVE_DEGRESS_ORDER" offset="0" width="32">1</field>
+          </register>
+          <register address="252" description="Forty five degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_45_DEG_LPDDR4">
+            <field Type="RW" name="FORTY_FIVE_DEGRESS_ORDER" offset="0" width="32">1</field>
+          </register>
+          <register address="256" description="Ninty degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR3">
+            <field Type="RW" name="NINTY_DEGRESS_ORDER" offset="0" width="32">2</field>
+          </register>
+          <register address="260" description="Ninty degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR3L">
+            <field Type="RW" name="NINTY_DEGRESS_ORDER" offset="0" width="32">2</field>
+          </register>
+          <register address="264" description="Ninty degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR4">
+            <field Type="RW" name="NINTY_DEGRESS_ORDER" offset="0" width="32">0x2</field>
+          </register>
+          <register address="268" description="Ninty degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_90_DEG_LPDDR3">
+            <field Type="RW" name="NINTY_DEGRESS_ORDER" offset="0" width="32">2</field>
+          </register>
+          <register address="272" description="Ninty degres clock move order" name="ADD_CMD_CLK_MOVE_ORDER_90_DEG_LPDDR4">
+            <field Type="RW" name="NINTY_DEGRESS_ORDER" offset="0" width="32">2</field>
           </register>
         </registers>
       </options>
@@ -2289,7 +2484,7 @@
             <field Type="RW" name="MSS_DDR_DM4" offset="6" width="1">0x1</field>
           </register>
           <register address="0x00000064" description="Sets starting DQDQS start training window offset. It should default to 1." name="RPC_156_VALUE">
-            <field Type="RW" name="VALUE" offset="0" width="32">0xA</field>
+            <field Type="RW" name="VALUE" offset="0" width="32">0x1</field>
           </register>
         </registers>
       </io_bank>
@@ -2626,10 +2821,10 @@
             <field Type="RW" name="CFG_WTR_L_CRC_DM" offset="0" width="32">0xB</field>
           </register>
           <register address="0x00003C90" description="IP Blk = MC_BASE1 Access=RW " name="CFG_WR_CRC_DM">
-            <field Type="RW" name="CFG_WR_CRC_DM" offset="0" width="32">0x11</field>
+            <field Type="RW" name="CFG_WR_CRC_DM" offset="0" width="32">0xF</field>
           </register>
           <register address="0x00003C94" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RFC1">
-            <field Type="RW" name="CFG_RFC1" offset="0" width="32">0x118</field>
+            <field Type="RW" name="CFG_RFC1" offset="0" width="32">0xEA</field>
           </register>
           <register address="0x00003C98" description="IP Blk = MC_BASE1 Access=RW " name="CFG_RFC2">
             <field Type="RW" name="CFG_RFC2" offset="0" width="32">0x0</field>
@@ -2800,31 +2995,31 @@
             <field Type="RW" name="CFG_AUTO_REF_EN" offset="0" width="32">0x1</field>
           </register>
           <register address="0x00004044" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RAS">
-            <field Type="RW" name="CFG_RAS" offset="0" width="32">0x1C</field>
+            <field Type="RW" name="CFG_RAS" offset="0" width="32">0x18</field>
           </register>
           <register address="0x00004048" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RCD">
-            <field Type="RW" name="CFG_RCD" offset="0" width="32">0xB</field>
+            <field Type="RW" name="CFG_RCD" offset="0" width="32">0xA</field>
           </register>
           <register address="0x0000404C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RRD">
             <field Type="RW" name="CFG_RRD" offset="0" width="32">0x00000007</field>
           </register>
           <register address="0x00004050" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RP">
-            <field Type="RW" name="CFG_RP" offset="0" width="32">0xB</field>
+            <field Type="RW" name="CFG_RP" offset="0" width="32">0xA</field>
           </register>
           <register address="0x00004054" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RC">
-            <field Type="RW" name="CFG_RC" offset="0" width="32">0x27</field>
+            <field Type="RW" name="CFG_RC" offset="0" width="32">0x21</field>
           </register>
           <register address="0x00004058" description="IP Blk = MC_BASE2 Access=RW " name="CFG_FAW">
-            <field Type="RW" name="CFG_FAW" offset="0" width="32">0x1C</field>
+            <field Type="RW" name="CFG_FAW" offset="0" width="32">0x18</field>
           </register>
           <register address="0x0000405C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RFC">
             <field Type="RW" name="CFG_RFC" offset="0" width="32">0x00000076</field>
           </register>
           <register address="0x00004060" description="IP Blk = MC_BASE2 Access=RW " name="CFG_RTP">
-            <field Type="RW" name="CFG_RTP" offset="0" width="32">0x6</field>
+            <field Type="RW" name="CFG_RTP" offset="0" width="32">0x5</field>
           </register>
           <register address="0x00004064" description="IP Blk = MC_BASE2 Access=RW " name="CFG_WR">
-            <field Type="RW" name="CFG_WR" offset="0" width="32">0xC</field>
+            <field Type="RW" name="CFG_WR" offset="0" width="32">0xA</field>
           </register>
           <register address="0x00004068" description="IP Blk = MC_BASE2 Access=RW " name="CFG_WTR">
             <field Type="RW" name="CFG_WTR" offset="0" width="32">0x00000008</field>
@@ -2887,10 +3082,10 @@
             <field Type="RW" name="CFG_DLL_DISABLE" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000040CC" description="IP Blk = MC_BASE2 Access=RW " name="CFG_REF_PER">
-            <field Type="RW" name="CFG_REF_PER" offset="0" width="32">0x1860</field>
+            <field Type="RW" name="CFG_REF_PER" offset="0" width="32">0x1450</field>
           </register>
           <register address="0x000040D0" description="IP Blk = MC_BASE2 Access=RW " name="CFG_STARTUP_DELAY">
-            <field Type="RW" name="CFG_STARTUP_DELAY" offset="0" width="32">0x27100</field>
+            <field Type="RW" name="CFG_STARTUP_DELAY" offset="0" width="32">0x208D4</field>
           </register>
           <register address="0x000040D4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_MEM_COLBITS">
             <field Type="RW" name="CFG_MEM_COLBITS" offset="0" width="32">0xA</field>
@@ -2977,13 +3172,13 @@
             <field Type="RW" name="CFG_MOD" offset="0" width="32">0x18</field>
           </register>
           <register address="0x0000418C" description="IP Blk = MC_BASE2 Access=RW " name="CFG_XS">
-            <field Type="RW" name="CFG_XS" offset="0" width="32">0x120</field>
+            <field Type="RW" name="CFG_XS" offset="0" width="32">0xF0</field>
           </register>
           <register address="0x00004190" description="IP Blk = MC_BASE2 Access=RW " name="CFG_XSDLL">
             <field Type="RW" name="CFG_XSDLL" offset="0" width="32">0x00000200</field>
           </register>
           <register address="0x00004194" description="IP Blk = MC_BASE2 Access=RW " name="CFG_XPR">
-            <field Type="RW" name="CFG_XPR" offset="0" width="32">0x120</field>
+            <field Type="RW" name="CFG_XPR" offset="0" width="32">0xF0</field>
           </register>
           <register address="0x00004198" description="IP Blk = MC_BASE2 Access=RW " name="CFG_AL_MODE">
             <field Type="RW" name="CFG_AL_MODE" offset="0" width="32">0x0</field>
@@ -3013,13 +3208,13 @@
             <field Type="RW" name="CFG_ADDR_MIRROR" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000041BC" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ZQ_CAL_TYPE">
-            <field Type="RW" name="CFG_ZQ_CAL_TYPE" offset="0" width="32">0x1</field>
+            <field Type="RW" name="CFG_ZQ_CAL_TYPE" offset="0" width="32">0x0</field>
           </register>
           <register address="0x000041C0" description="IP Blk = MC_BASE2 Access=RW " name="CFG_ZQ_CAL_PER">
-            <field Type="RW" name="CFG_ZQ_CAL_PER" offset="0" width="32">0x27100</field>
+            <field Type="RW" name="CFG_ZQ_CAL_PER" offset="0" width="32">0x208D4</field>
           </register>
           <register address="0x000041C4" description="IP Blk = MC_BASE2 Access=RW " name="CFG_AUTO_ZQ_CAL_EN">
-            <field Type="RW" name="CFG_AUTO_ZQ_CAL_EN" offset="0" width="32">0x0</field>
+            <field Type="RW" name="CFG_AUTO_ZQ_CAL_EN" offset="0" width="32">0x1</field>
           </register>
           <register address="0x000041C8" description="IP Blk = MC_BASE2 Access=RW " name="CFG_MEMORY_TYPE">
             <field Type="RW" name="CFG_MEMORY_TYPE" offset="0" width="32">0x80</field>
@@ -3571,7 +3766,7 @@
             <field Type="RW" name="MSS_APB_AHB_CLK" offset="0" width="32">150000000</field>
           </register>
           <register address="28" description="DDR clock rate in Hz (clk rate x 2)" name="DDR_CLK">
-            <field Type="RW" name="DDR_CLK" offset="0" width="32">1600000000</field>
+            <field Type="RW" name="DDR_CLK" offset="0" width="32">1333320000</field>
           </register>
         </registers>
       </clocks>
@@ -3897,13 +4092,13 @@
             <field Type="RW" name="FBCK_SEL" offset="1" width="2">0x0</field>
             <field Type="RW" name="FOUTFB_SELMUX_EN" offset="3" width="1">0x0</field>
             <field Type="RSVD" name="RESERVE12" offset="4" width="4">0x0</field>
-            <field Type="RW" name="RFDIV" offset="8" width="6">0x5</field>
+            <field Type="RW" name="RFDIV" offset="8" width="6">0x1</field>
             <field Type="RSVD" name="RESERVE13" offset="14" width="2">0x0</field>
             <field Type="RSVD" name="RESERVE14" offset="16" width="12">0x0</field>
             <field Type="RSVD" name="RESERVE15" offset="28" width="4">0x0</field>
           </register>
           <register address="0x0000000C" description="PLL fractional register" name="PLL_FRACN">
-            <field Type="RW" name="FRACN_EN" offset="0" width="1">0x0</field>
+            <field Type="RW" name="FRACN_EN" offset="0" width="1">0x1</field>
             <field Type="RW" name="FRACN_DAC_EN" offset="1" width="1">0x0</field>
             <field Type="RSVD" name="RESERVE16" offset="2" width="6">0x0</field>
             <field Type="RSVD" name="RESERVE17" offset="8" width="24">0x0</field>
@@ -3966,7 +4161,7 @@
           </register>
           <register address="0x00000024" description="SSCG registers 0" name="SSCG_REG_0">
             <field Type="RW" name="DIVVAL" offset="0" width="6">0x0</field>
-            <field Type="RW" name="FRACIN" offset="6" width="24">0x0</field>
+            <field Type="RW" name="FRACIN" offset="6" width="24">0x55475A</field>
             <field Type="RSVD" name="RESERVE00" offset="30" width="2">0x0</field>
           </register>
           <register address="0x00000028" description="SSCG registers 1" name="SSCG_REG_1">
@@ -3976,7 +4171,7 @@
             <field Type="RSVD" name="RESERVE01" offset="30" width="2">0x0</field>
           </register>
           <register address="0x0000002C" description="SSCG registers 2" name="SSCG_REG_2">
-            <field Type="RW" name="INTIN" offset="0" width="12">0x80</field>
+            <field Type="RW" name="INTIN" offset="0" width="12">0x15</field>
             <field Type="RO" name="INTMOD" offset="12" width="12">0x0</field>
             <field Type="RSVD" name="RESERVE02" offset="24" width="8">0x0</field>
           </register>

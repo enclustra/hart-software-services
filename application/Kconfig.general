@@ -1,6 +1,7 @@
 menu "General Configuration Options"
 
 menu "Miscellaneous"
+
 config USE_PCIE
 	bool "Setup PCIe"
 	default y
@@ -9,18 +10,31 @@ config USE_PCIE
 
 		If you don't know what to do here, say Y.
 
-config UART_SURRENDER
-	bool "HSS UART Surrender"
-	depends on OPENSBI && !SERVICE_TINYCLI_REGISTER
-        default n
-	help
-		If enabled, this feature "surrenders" MMUART0 after boot.  After this point,
-		HSS status messages will no longer be sent out MMUART0
+menu "Enabled PCIe controllers"
+	visible if USE_PCIE
 
-		This feature is not compatible with SERVICE_TINYCLI_REGISTER. If you want the
-		HSS to surrender MMUART0 UART after boot, do not enable SERVICE_TINYCLI_REGISTER.
+config ENABLE_PCIE_CTRL_0
+	bool "Use PCIe controller 0"
+	default n
+		depends on USE_PCIE
+	help
+                This feature enables PCIe Controller 0.
+				Enable this feature if PCIe controller 0 is enabled in the FPGA design.
 
 		If you do not know what to do here, say N.
+
+config ENABLE_PCIE_CTRL_1
+	bool "Use PCIe controller 1"
+	default n
+		depends on USE_PCIE
+	help
+                This feature enables PCIe Controller 1.
+				Enable this feature if PCIe controller 1 is enabled in the FPGA design.
+
+		If you do not know what to do here, say N.
+
+endmenu
+
 
 config OPENSBI
 	def_bool y
@@ -34,6 +48,32 @@ config USE_IHC
 	default y
 	help
 		Enable MiV Inter-Hart Communication (IHC)
+
+config USE_USER_CRYPTO
+	bool "Use User Crypto"
+	default n
+	help
+		Enable User Crypto for Crypto signing, OpenSBI ecall service or both.
+
+		If you do not know what to do here, say Y.
+
+menu "Serial Port"
+config UART_SURRENDER
+	bool "HSS UART Surrender"
+	depends on OPENSBI
+        default n
+	help
+		If enabled, this feature "surrenders" MMUART0 after boot.  After this point,
+		HSS status messages will no longer be sent out MMUART0
+
+		If you do not know what to do here, say N.
+
+config UART_POST_BOOT
+    int "MMUART for HSS to use after booting"
+    default 0
+    range 0 4
+
+endmenu
 
 menu "Tamper"
 
@@ -94,17 +134,31 @@ config COLDREBOOT_FULL_FPGA_RESET
 	depends on USE_TAMPER
 	help
 		If enabled, this feature allows the HSS to do a full reset of
-		the FPGA when a cold reboot is requested. This is required to
-		initiate an Auto-Update at runtime but should be disabled
-		otherwise. Ensure the "TAMPER_BASE_ADDRESS" is set to match
-		the address of the tamper macro in your FPGA design.
+		the FPGA when a cold reboot is requested. Either this, or
+		TRY_AUTO_UPDATE is required to initiate an Auto-Update at
+		runtime but should be disabled otherwise.
+		Ensure the "TAMPER_BASE_ADDRESS" is set to match the address of
+		the tamper macro in your FPGA design.
+
+		If you do not know what to do here, say N.
+
+config COLDREBOOT_TRY_AUTO_UPDATE
+	bool "Attempt Auto Update when cold reboot is requested"
+	default n
+	depends on ALLOW_COLDREBOOT
+	help
+		If enabled, this feature allows the HSS attempt Auto Update
+		when a cold reboot is requested. Either this, or
+		FULL_FPGA_RESET is required to initiate an Auto-Update at
+		runtime but should be disabled otherwise. If the attempt fails,
+		the HSS will attempt another means of requesting a cold reboot.
 
 		If you do not know what to do here, say N.
 
 config ALLOW_COLDREBOOT_ON_OPENSBI_FAULT
 	bool "Trigger a cold reboot on OpenSBI fault"
 	default n
-	depends on ALLOW_COLDREBOOT
+	depends on ALLOW_COLDREBOOT && OPENSBI
 	help
 		If enabled, this feature globally allows all contexts to issue a
 		cold reboot on encountering an OpenSBI fault condition.
@@ -138,12 +192,6 @@ config PROVIDE_DTB
                 If this isn't needed, it is possible to save some space by removing it.
 
 		If you don't know what to do here, say Y.
-
-config DEFAULT_DEVICE_TREE
-	string "hifive-unleashed-a00-freedom-u540.dtb"
-	depends on PROVIDE_DTB
-	help
-		This option specifies the default Device Tree to be used.
 endmenu
 
 menu "Memory Options"

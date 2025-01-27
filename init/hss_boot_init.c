@@ -20,6 +20,8 @@
 #include "hss_boot_init.h"
 #include "hss_sys_setup.h"
 #include "hss_progress.h"
+#include "hss_trigger.h"
+#include "u54_state.h"
 
 #if IS_ENABLED(CONFIG_SERVICE_SPI)
 #  include <mss_sys_services.h>
@@ -63,15 +65,15 @@
 #include "hss_boot_pmp.h"
 #include "hss_atomic.h"
 
+#include "sbi_bitops.h"
+
 //
 // local module functions
 
 #if IS_ENABLED(CONFIG_SERVICE_BOOT)
-#  if !IS_ENABLED(CONFIG_SERVICE_BOOT_USE_PAYLOAD)
 typedef bool (*HSS_BootImageCopyFnPtr_t)(void *pDest, size_t srcOffset, size_t byteCount);
 static bool copyBootImageToDDR_(struct HSS_BootImage *pBootImage, char *pDest,
     size_t srcOffset, HSS_BootImageCopyFnPtr_t pCopyFunction);
-#  endif
 
 static void printBootImageDetails_(struct HSS_BootImage const * const pBootImage);
 static bool tryBootFunction_(struct HSS_Storage *pStorage, HSS_GetBootImageFnPtr_t getBootImageFunction);
@@ -176,6 +178,25 @@ void HSS_BootListStorageProviders(void)
     }
 }
 
+void HSS_BootHarts(void)
+{
+#if IS_ENABLED(CONFIG_SERVICE_BOOT)
+        union HSSHartBitmask restartHartBitmask = { .uint = 0u };
+
+        for (int i = HSS_HART_U54_1; i < HSS_HART_NUM_PEERS; i++) {
+            //mHSS_DEBUG_PRINTF(LOG_ERROR, "%s(): checking u54_%d\n", __func__, i);
+            if (HSS_U54_GetState_Ex(i) == HSS_State_Idle) {
+                //mHSS_DEBUG_PRINTF(LOG_ERROR, "%s(): => rebooting u54_%d\n", __func__, i);
+                restartHartBitmask.uint |= BIT(i);
+            }
+        }
+
+        if (restartHartBitmask.uint) {
+            HSS_Boot_RestartCores_Using_Bitmask(restartHartBitmask);
+        }
+#endif
+}
+
 bool HSS_BootInit(void)
 {
     bool result = true;
@@ -187,13 +208,13 @@ bool HSS_BootInit(void)
     HSS_PerfCtr_Allocate(&perf_ctr_index, "Boot Image Init");
 
     if (pDefaultStorage) {
-        result = pDefaultStorage->init();
+        if (pDefaultStorage->init) { result = pDefaultStorage->init(); }
         if (result) {
             result = tryBootFunction_(pDefaultStorage, pDefaultStorage->getBootImage);
         }
     } else {
         for (int i = 0; i < ARRAY_SIZE(pStorages); i++) {
-            mHSS_DEBUG_PRINTF(LOG_NORMAL, "Trying to boot via %s ...\n", pStorages[i]->name);
+            mHSS_DEBUG_PRINTF(LOG_NORMAL, "Trying to get boot image via %s ...\n", pStorages[i]->name);
 
             if (pStorages[i]->init) {
                 result = pStorages[i]->init();
@@ -233,33 +254,35 @@ bool tryBootFunction_(struct HSS_Storage *pStorage, HSS_GetBootImageFnPtr_t cons
     //
     // for now, compression only works with a source already in DDR
 #  if IS_ENABLED(CONFIG_COMPRESSION)
-    if (result && pBootImage->magic == mHSS_COMPRESSED_MAGIC) {
+    if (result && pBootImage && (pBootImage->magic == mHSS_COMPRESSED_MAGIC)) {
         decompressedFlag = true;
-        if (!result) {
-            mHSS_DEBUG_PRINTF(LOG_ERROR, "Failed to get boot image, cannot decompress\n");
-        } else if (!pBootImage) {
-            mHSS_DEBUG_PRINTF(LOG_ERROR, "Boot Image NULL, ignoring\n");
-            result = false;
+
+        mHSS_DEBUG_PRINTF(LOG_NORMAL, "Preparing to decompress to DDR ...\n");
+        void* const pInput = (void*)pBootImage;
+        void * const pOutputInDDR = (void *)(CONFIG_SERVICE_BOOT_DDR_TARGET_ADDR);
+
+        int outputSize = HSS_Decompress(pInput, pOutputInDDR);
+        mHSS_DEBUG_PRINTF(LOG_NORMAL, "decompressed %d bytes ...\n", outputSize);
+
+        if (outputSize) {
+            pBootImage = (struct HSS_BootImage *)pOutputInDDR;
         } else {
-            mHSS_DEBUG_PRINTF(LOG_NORMAL, "Preparing to decompress to DDR ...\n");
-            void* const pInput = (void*)pBootImage;
-            void * const pOutputInDDR = (void *)(CONFIG_SERVICE_BOOT_DDR_TARGET_ADDR);
-
-            int outputSize = HSS_Decompress(pInput, pOutputInDDR);
-            mHSS_DEBUG_PRINTF(LOG_NORMAL, "decompressed %d bytes ...\n", outputSize);
-
-            if (outputSize) {
-                pBootImage = (struct HSS_BootImage *)pOutputInDDR;
-            } else {
-                pBootImage = NULL;
-            }
+            pBootImage = NULL;
         }
+    } else if (!result) {
+        mHSS_DEBUG_PRINTF(LOG_ERROR, "Failed to get boot image, cannot decompress\n");
+        result = false;
+    } else if (!pBootImage) {
+        mHSS_DEBUG_PRINTF(LOG_ERROR, "Boot Image NULL, ignoring\n");
+        result = false;
     }
 #  endif
 
     if (result) {
         HSS_Register_Boot_Image(pBootImage);
         mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s: Boot Image registered ...\n", pStorage->name);
+    } else {
+        HSS_Register_Boot_Image(NULL);
     }
 
     return result;
@@ -277,7 +300,7 @@ static void printBootImageDetails_(struct HSS_BootImage const * const pBootImage
 }
 #endif
 
-#if IS_ENABLED(CONFIG_SERVICE_BOOT) && !IS_ENABLED(CONFIG_SERVICE_BOOT_USE_PAYLOAD)
+#if IS_ENABLED(CONFIG_SERVICE_BOOT)
 static bool copyBootImageToDDR_(struct HSS_BootImage *pBootImage, char *pDest,
     size_t srcOffset, HSS_BootImageCopyFnPtr_t pCopyFunction)
 {
@@ -391,6 +414,9 @@ void HSS_BootSelectSDCARD(void)
     mHSS_DEBUG_PRINTF(LOG_NORMAL, "Selecting SDCARD as boot source ...\n");
     pDefaultStorage = &mmcStorage_;
     HSS_MMC_SelectSDCARD();
+#  if IS_ENABLED(CONFIG_SERVICE_BOOT)
+    HSS_Register_Boot_Image(NULL);
+#  endif
 #else
     (void)getBootImageFromMMC_;
 #endif
@@ -402,6 +428,9 @@ void HSS_BootSelectMMC(void)
     mHSS_DEBUG_PRINTF(LOG_NORMAL, "Selecting SDCARD/MMC (fallback) as boot source ...\n");
     pDefaultStorage = &mmcStorage_;
     HSS_MMC_SelectMMC();
+#  if IS_ENABLED(CONFIG_SERVICE_BOOT)
+    HSS_Register_Boot_Image(NULL);
+#  endif
 #else
     (void)getBootImageFromMMC_;
 #endif
@@ -413,6 +442,9 @@ void HSS_BootSelectEMMC(void)
     mHSS_DEBUG_PRINTF(LOG_NORMAL, "Selecting EMMC as boot source ...\n");
     pDefaultStorage = &mmcStorage_;
     HSS_MMC_SelectEMMC();
+#  if IS_ENABLED(CONFIG_SERVICE_BOOT)
+    HSS_Register_Boot_Image(NULL);
+#  endif
 #else
     (void)getBootImageFromMMC_;
 #endif
@@ -471,6 +503,9 @@ void HSS_BootSelectQSPI(void)
 #if IS_ENABLED(CONFIG_SERVICE_QSPI)
     mHSS_DEBUG_PRINTF(LOG_NORMAL, "Selecting QSPI as boot source ...\n");
     pDefaultStorage = &qspiStorage_;
+#  if IS_ENABLED(CONFIG_SERVICE_BOOT)
+    HSS_Register_Boot_Image(NULL);
+#  endif
 #else
     (void)getBootImageFromQSPI_;
 #endif
@@ -484,8 +519,12 @@ static bool getBootImageFromPayload_(struct HSS_Storage *pStorage, struct HSS_Bo
 #if IS_ENABLED(CONFIG_SERVICE_BOOT) && IS_ENABLED(CONFIG_SERVICE_BOOT_USE_PAYLOAD)
     assert(ppBootImage);
 
+#if IS_ENABLED(CONFIG_SERVICE_BOOT_USE_PAYLOAD_IN_FABRIC)
+    *ppBootImage = (struct HSS_BootImage *)(CONFIG_SERVICE_BOOT_USE_PAYLOAD_IN_FABRIC_ADDRESS);
+#else
     extern struct HSS_BootImage _payload_start;
     *ppBootImage = (struct HSS_BootImage *)&_payload_start;
+#endif
 
     result = HSS_Boot_VerifyMagic(*ppBootImage);
     printBootImageDetails_(*ppBootImage);
@@ -496,9 +535,12 @@ static bool getBootImageFromPayload_(struct HSS_Storage *pStorage, struct HSS_Bo
 
 void HSS_BootSelectPayload(void)
 {
-#if IS_ENABLED(CONFIG_SERVICE_USE_PAYLOAD)
+#if IS_ENABLED(CONFIG_SERVICE_BOOT_USE_PAYLOAD)
     mHSS_DEBUG_PRINTF(LOG_NORMAL, "Selecting Payload as boot source ...\n");
     pDefaultStorage = &payloadStorage_;
+#  if IS_ENABLED(CONFIG_SERVICE_BOOT)
+    HSS_Register_Boot_Image(NULL);
+#  endif
 #else
     (void)getBootImageFromPayload_;
 #endif
@@ -555,6 +597,7 @@ void HSS_BootSelectSPI(void)
 #if IS_ENABLED(CONFIG_SERVICE_SPI)
     mHSS_DEBUG_PRINTF(LOG_NORMAL, "Selecting SPI Flash as boot source ...\n");
     pDefaultStorage = &spiStorage_;
+    HSS_Register_Boot_Image(NULL);
 #else
     (void)getBootImageFromSpiFlash_;
 #endif

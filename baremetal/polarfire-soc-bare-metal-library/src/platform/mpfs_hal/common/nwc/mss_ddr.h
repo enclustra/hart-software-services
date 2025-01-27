@@ -1,15 +1,10 @@
 /*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+ * Copyright 2019 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
- * MPFS HAL Embedded Software
- *
- */
-
-/*******************************************************************************
  * @file mss_ddr.h
- * @author Microchip-FPGA Embedded Systems Solutions
+ * @author Microchip FPGA Embedded Systems Solutions
  * @brief DDR related defines
  *
  */
@@ -437,6 +432,38 @@ typedef enum DDR_MEMORY_ACCESS_
 #define TRANSITION_A5_THRESHOLD                     18U
 #endif
 
+#ifndef ADD_CMD_INC_FREQ_DDR3
+#define ADD_CMD_INC_FREQ_DDR3       3U
+#endif
+#ifndef  ADD_CMD_INC_FREQ_DDR3L
+#define ADD_CMD_INC_FREQ_DDR3L      3U
+#endif
+#ifndef ADD_CMD_INC_FREQ_DDR4
+#define ADD_CMD_INC_FREQ_DDR4       3U
+#endif
+#ifndef ADD_CMD_INC_FREQ_LPDDR3
+#define ADD_CMD_INC_FREQ_LPDDR3     3U
+#endif
+#ifndef ADD_CMD_INC_FREQ_LPDDR4
+#define ADD_CMD_INC_FREQ_LPDDR4     6U
+#endif
+
+#ifndef ADD_CMD_TRANS_A5_THRES_DDR3
+#define ADD_CMD_TRANS_A5_THRES_DDR3       18U
+#endif
+#ifndef  ADD_CMD_TRANS_A5_THRES_DDR3L
+#define ADD_CMD_TRANS_A5_THRES_DDR3L      18U
+#endif
+#ifndef ADD_CMD_TRANS_A5_THRES_DDR4
+#define ADD_CMD_TRANS_A5_THRES_DDR4       18U
+#endif
+#ifndef ADD_CMD_TRANS_A5_THRES_LPDDR3
+#define ADD_CMD_TRANS_A5_THRES_LPDDR3     18U
+#endif
+#ifndef ADD_CMD_TRANS_A5_THRES_LPDDR4
+#define ADD_CMD_TRANS_A5_THRES_LPDDR4     18U
+#endif
+
 /* Value used during write leveling */
 #ifndef DPC_VRGEN_H_LPDDR4_WR_LVL_VAL
 #define DPC_VRGEN_H_LPDDR4_WR_LVL_VAL   0x5U
@@ -454,16 +481,27 @@ typedef enum DDR_MEMORY_ACCESS_
 #define DDR_FULL_32BIT_CACHED_CHECK_EN  0
 #endif
 
-#if !defined (NO_PATTERN_IN_CACHE_READS)
-#define NO_PATTERN_IN_CACHE_READS  1
+#if !defined (PATTERN_TEST_NUM_PATTERN_IN_CACHE_READS)
+#define PATTERN_TEST_NUM_PATTERN_IN_CACHE_READS  1
 #endif
 
-#if !defined (SIZE_OF_PATTERN_TEST)
-#define SIZE_OF_PATTERN_TEST 0x02000000UL
+#if !defined (PATTERN_TEST_SIZE)
+#define PATTERN_TEST_SIZE 0x02000000UL
 #endif
 
-#if !defined (SIZE_OF_PATTERN_OFFSET)
-#define SIZE_OF_PATTERN_OFFSET  12U
+#if !defined (PATTERN_TEST_START_OFFSET)
+#define PATTERN_TEST_START_OFFSET      12U
+#endif
+
+#if !defined (PATTERN_TEST_NUM_OFFSET_INCS)
+#define PATTERN_TEST_NUM_OFFSET_INCS    1U
+#endif
+
+#define PATTERN_TEST_MIN_OFFSET         1U
+#define PATTERN_TEST_MAX_OFFSET         16U
+
+#if !defined (LIBERO_SETTING_USE_CK_PUSH_DDR4_LPDDR3)
+#define LIBERO_SETTING_USE_CK_PUSH_DDR4_LPDDR3    1U
 #endif
 
 #if !defined (DEFAULT_RPC_166_VALUE)
@@ -544,24 +582,100 @@ typedef enum DDR_MEMORY_ACCESS_
  * Define in mss_sw_config.h will take precedence
  */
 #if (LIBERO_SETTING_DDR_CLK == DDR_1600_MHZ)
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ZERO)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ZERO                         1U
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR3                   0U
 #endif
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ONE)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ONE                          2U
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR3L
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR3L                  0U
 #endif
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_TWO)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_TWO                          0U
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR4                   0U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_LPDDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_LPDDR3                 2U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_LPDDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_LPDDR4                 1U
+#endif
+
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR3                  1U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR3L
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR3L                 1U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR4                  1U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_LPDDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_LPDDR3                0U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_LPDDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_LPDDR4                2U
+#endif
+
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR3                  2U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR3L
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR3L                 2U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR4                  2U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_LPDDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_LPDDR3                1U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_LPDDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_LPDDR4                0U
 #endif
 #else
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ZERO)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ZERO                         0U
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR3                   0U
 #endif
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ONE)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_ONE                          1U
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR3L
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR3L                  0U
 #endif
-#if !defined (LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_TWO)
-#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_TWO                          2U
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_DDR4                   0U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_LPDDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_LPDDR3                 2U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_LPDDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_0_DEG_LPDDR4                 0U
+#endif
+
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR3                  1U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR3L
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR3L                 1U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_DDR4                  1U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_LPDDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_LPDDR3                0U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_LPDDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_45_DEG_LPDDR4                1U
+#endif
+
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR3                  2U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR3L
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR3L                 2U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_DDR4                  2U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_LPDDR3
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_LPDDR3                1U
+#endif
+#ifndef LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_LPDDR4
+#define LIBERO_SETTING_ADD_CMD_CLK_MOVE_ORDER_90_DEG_LPDDR4                2U
 #endif
 #endif
 
@@ -891,7 +1005,6 @@ typedef enum MTC_ADD_PATTERN_
  */
 typedef enum DDR_SM_STATES_
 {
-
     DDR_STATE_INIT         = 0x00,     /*!< 0 DDR_STATE_INIT*/
     DDR_STATE_MONITOR      = 0x01,     /*!< 1 DDR_STATE_MONITOR */
     DDR_STATE_TRAINING     = 0x02,     /*!< 2 DDR_STATE_TRAINING */
@@ -903,7 +1016,6 @@ typedef enum DDR_SM_STATES_
  */
 typedef enum DDR_SS_COMMAND_
 {
-
     DDR_SS__INIT        = 0x00,     /*!< 0 DDR_SS__INIT */
     DDR_SS_MONITOR      = 0x01,     /*!< 1 DDR_SS_MONITOR */
 } DDR_SS_COMMAND;
@@ -914,7 +1026,6 @@ typedef enum DDR_SS_COMMAND_
  */
 typedef enum DDR_SS_STATUS_
 {
-
     DDR_SETUP_DONE      = 0x01,      /*!< 0 DDR_SETUP_DONE */
     DDR_SETUP_FAIL      = 0x02,      /*!< 1 DDR_SETUP_FAIL */
     DDR_SETUP_SUCCESS   = 0x04,      /*!< 2 DDR_SETUP_SUCCESS */
@@ -927,7 +1038,6 @@ typedef enum DDR_SS_STATUS_
  */
 typedef enum DDR_TRAINING_SM_
 {
-
     DDR_TRAINING_INIT,              /*!< DDR_TRAINING_INIT */
     DDR_TRAINING_FAIL,
     DDR_CHECK_TRAINING_SWEEP,
@@ -963,6 +1073,7 @@ typedef enum DDR_TRAINING_SM_
     DDR_FULL_MTC_CHECK,
     DDR_FULL_32BIT_NC_CHECK,
     DDR_FULL_32BIT_CACHE_CHECK,
+    DDR_LOAD_PATTERN_TO_CACHE_SETUP,
     DDR_LOAD_PATTERN_TO_CACHE,
     DDR_VERIFY_PATTERN_IN_CACHE,
     DDR_FULL_32BIT_WRC_CHECK,
@@ -996,7 +1107,6 @@ typedef enum DDR_TRAINING_SM_
 
  */
 typedef enum {
-
     USR_CMD_GET_DDR_STATUS      = 0x00,    //!< USR_CMD_GET_DDR_STATUS
     USR_CMD_GET_MODE_SETTING    = 0x01,    //!< USR_CMD_GET_MODE_SETTING
     USR_CMD_GET_W_CALIBRATION   = 0x02,    //!< USR_CMD_GET_W_CALIBRATION
@@ -1134,20 +1244,12 @@ typedef struct sweep_index_{
 /***************************************************************************//**
 
  */
-uint8_t
-MSS_DDR_init_simulation
-(
-    void
-);
+uint8_t MSS_DDR_init_simulation(void);
 
 /***************************************************************************//**
 
  */
-uint8_t
-MSS_DDR_training
-(
-    uint8_t ddr_type
-);
+uint8_t MSS_DDR_training(uint8_t ddr_type);
 
 
 /***************************************************************************//**
@@ -1175,31 +1277,7 @@ MSS_DDR_training
   @endcode
 
  */
-uint32_t
-ddr_state_machine
-(
-    DDR_SS_COMMAND command
-);
-
-/***************************************************************************//**
-  The debug_read_ddrcfg() prints out the ddrcfg register values
-
-  @return
-    This function returns status, see DDR_SS_STATUS enum
-
-  Example:
-  @code
-
-      debug_read_ddrcfg();
-
-  @endcode
-
- */
-void
-debug_read_ddrcfg
-(
-    void
-);
+uint32_t ddr_state_machine(DDR_SS_COMMAND command);
 
 /***************************************************************************//**
   The setup_ddr_segments() sets up seg regs
@@ -1215,14 +1293,96 @@ debug_read_ddrcfg
   @endcode
 
  */
-void
-setup_ddr_segments
-(
-    SEG_SETUP option
-);
+void setup_ddr_segments(SEG_SETUP option);
 
-char * fill_cache_new_seg_address(void *dest, void *dest_end);
+/***************************************************************************//**
+  The clear_bootup_cache_ways() sets up seg regs
+
+  @return
+    none
+
+  Example:
+  @code
+
+      clear_bootup_cache_ways(DEFAULT_SEG_SETUP);
+
+  @endcode
+
+ */
 void clear_bootup_cache_ways(void);
+
+/***************************************************************************//**
+  The fill_cache_new_seg_address()
+
+  @return
+    none
+
+  Example:
+  @code
+
+      fill_cache_new_seg_address(DEFAULT_SEG_SETUP);
+
+  @endcode
+
+ */
+char * fill_cache_new_seg_address(void *dest, void *dest_end);
+
+/***************************************************************************//**
+  The mpfs_hal_turn_ddr_selfrefresh_on(void) flushes cache and turns on self
+  refresh. When DDR is in self refresh mode, less power is consumed by the
+  memory. Data is retained. You can not write or read from the DDR when
+  self-refresh is on.
+
+
+  @return
+    none
+
+  Example:
+  @code
+
+      mpfs_hal_turn_ddr_selfrefresh_on(DEFAULT_SEG_SETUP);
+
+  @endcode
+
+ */
+void mpfs_hal_turn_ddr_selfrefresh_on(void);
+
+/***************************************************************************//**
+  The mpfs_hal_turn_ddr_selfrefresh_off()
+
+  @return
+    none
+
+  Example:
+  @code
+
+      mpfs_hal_turn_ddr_selfrefresh_off();
+
+  @endcode
+
+ */
+void mpfs_hal_turn_ddr_selfrefresh_off(void);
+
+/***************************************************************************//**
+  The mpfs_hal_ddr_selfrefresh_status()
+
+  @return
+    none
+
+  Example:
+  @code
+
+      status = mpfs_hal_ddr_selfrefresh_status();
+
+      if(status != 0U)
+      {
+          printf("self refresh is on\n");
+      }
+
+  @endcode
+
+ */
+uint32_t mpfs_hal_ddr_selfrefresh_status(void);
 
 
 #ifdef __cplusplus

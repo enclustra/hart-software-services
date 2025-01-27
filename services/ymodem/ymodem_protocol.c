@@ -25,6 +25,9 @@
 #include "ymodem.h"
 #include "drivers/mss/mss_mmuart/mss_uart.h"
 #include "uart_helper.h"
+#if IS_ENABLED(CONFIG_SERVICE_WDOG)
+#  include "wdog_service.h"
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -35,7 +38,7 @@
 
 #define HSS_XYMODEM_MAX_SYNC_ATTEMPTS      20u
 #define HSS_XYMODEM_CAN_COUNT_REQUIRED     2u
-#define HSS_XYMODEM_PRE_SYNC_TIMEOUT_SEC   2
+#define HSS_XYMODEM_PRE_SYNC_TIMEOUT_SEC   10
 #define HSS_XYMODEM_POST_SYNC_TIMEOUT_SEC  1
 #define HSS_XYMODEM_BAD_PACKET_RETRIES     10u
 
@@ -222,7 +225,6 @@ static bool XYMODEM_ReadPacket(struct XYModem_Packet *pPacket, struct XYModem_St
             case XYMODEM_EOT:
                 can_rx_count = 0u;
                 pPacket->length = 0u;
-                //pState->status.s.endOfSession = true;
                 pState->eotReceived= true;
                 synced = true;
                 syncAttempt = HSS_XYMODEM_MAX_SYNC_ATTEMPTS;
@@ -251,8 +253,6 @@ static bool XYMODEM_ReadPacket(struct XYModem_Packet *pPacket, struct XYModem_St
             case XYMODEM_GETCHAR_TIMEOUT:
                 __attribute__((fallthrough)); // deliberate fallthrough
             default:
-                //mHSS_DEBUG_PRINTF("%s(): %d: char is %0x\n", __func__, syncAttempt,
-                //    pPacket->startByte);
                 can_rx_count = 0u;
                 ++syncAttempt;
                 synced = false;
@@ -304,7 +304,6 @@ static bool XYMODEM_ReadPacket(struct XYModem_Packet *pPacket, struct XYModem_St
         }
     }
 
-    //mHSS_DEBUG_PRINTF("%s(): returning %d\n", __func__, result);
     return result;
 }
 
@@ -454,6 +453,10 @@ size_t ymodem_receive(uint8_t *buffer, size_t bufferSize)
     size_t result = 0u;
     struct XYModem_State state = { 0 };
     memset(state.filename, 0, HSS_XYMODEM_MAX_FILENAME_LENGTH);
+
+#if IS_ENABLED(CONFIG_SERVICE_WDOG)
+    HSS_Wdog_E51_Tickle();
+#endif
 
     result = XYMODEM_Receive(HSS_XYMODEM_PROTOCOL_YMODEM, &state, (char *)buffer, bufferSize);
 

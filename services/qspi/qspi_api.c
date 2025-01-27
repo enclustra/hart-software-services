@@ -15,6 +15,7 @@
 #include "config.h"
 #include "hss_types.h"
 #include "hss_state_machine.h"
+#include "ddr_service.h"
 #include "hss_progress.h"
 #include "hss_debug.h"
 
@@ -32,6 +33,9 @@
 #endif
 #if IS_ENABLED(CONFIG_SERVICE_QSPI_MICRON_MQ25T)
 #  include "micron_mt25q.h"
+#endif
+#if IS_ENABLED(CONFIG_SERVICE_WDOG)
+#  include "wdog_service.h"
 #endif
 
 /*
@@ -171,7 +175,6 @@ __attribute__((pure)) static inline uint32_t logical_to_physical_block_(const ui
 
 static void demandCopyFlashBlocksToCache_(size_t byteOffset, size_t byteCount, bool markDirty)
 {
-
     for (size_t offset = byteOffset; offset < (byteOffset + byteCount); offset += blockSize) {
         const size_t physicalBlockOffset = logical_to_physical_block_(column_to_block_(offset));
 
@@ -236,6 +239,10 @@ static void copyCacheToFlashBlocks_(size_t byteOffset, size_t byteCount)
     for (size_t offset = byteOffset; dirtyBlockCount && (offset < endOffset); offset += blockSize) {
 
         HSS_ShowProgress(initialDirtyBlockCount, dirtyBlockCount);
+
+#if IS_ENABLED(CONFIG_SERVICE_WDOG)
+        HSS_Wdog_E51_Tickle();
+#endif
 
         const size_t physicalBlockOffset = logical_to_physical_block_(column_to_block_(offset));
 
@@ -329,9 +336,7 @@ bool HSS_QSPIInit(void)
             //   * a set of logical block descriptors;
             //   * a data cache the same size as the QSPI Flash device
             //
-            extern const uint64_t __ddr_start;
-#define DDR_START              (&__ddr_start)
-            uint8_t *pU8Buffer = (uint8_t *)DDR_START; // start of cached DDR, as good a place as any
+            uint8_t *pU8Buffer = (uint8_t*)HSS_DDR_GetStart();
             pLogicalToPhysicalMap = (uint16_t *)pU8Buffer;
             memset(pLogicalToPhysicalMap, 0, (sizeof(*pLogicalToPhysicalMap) * blockCount));
             pU8Buffer += (sizeof(*pLogicalToPhysicalMap) * blockCount);

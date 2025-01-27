@@ -18,6 +18,7 @@
 #include "hss_state_machine.h"
 #include "hss_boot_service.h"
 #include "opensbi_service.h"
+#include "ddr_service.h"
 #include "hss_boot_pmp.h"
 #include "hss_sys_setup.h"
 #include "hss_clock.h"
@@ -26,9 +27,12 @@
 #include "common/mss_peripherals.h"
 #include "hss_crc32.h"
 #include "u54_state.h"
+#include "hss_trigger.h"
+#include "hss_boot_init.h"
 
 #include <assert.h>
 #include <string.h>
+#include "riscv_atomic.h"
 
 #include "mpfs_reg_map.h"
 
@@ -67,6 +71,9 @@
 #  include "opensbi_rproc_ecall.h"
 #endif
 
+#if IS_ENABLED(CONFIG_SERVICE_GPIO_UI)
+#  include "gpio_ui_service.h"
+#endif
 
 /* Timeouts */
 #define BOOT_SETUP_PMP_COMPLETE_TIMEOUT (ONE_SEC * 1u)
@@ -93,6 +100,8 @@ static void boot_opensbi_init_onExit(struct StateMachine * const pMyMachine);
 static void boot_wait_onEntry(struct StateMachine * const pMyMachine);
 static void boot_wait_handler(struct StateMachine * const pMyMachine);
 static void boot_error_handler(struct StateMachine * const pMyMachine);
+static void boot_complete_onEntry(struct StateMachine * const pMyMachine);
+static void boot_complete_handler(struct StateMachine * const pMyMachine);
 static void boot_idle_onEntry(struct StateMachine * const pMyMachine);
 static void boot_idle_handler(struct StateMachine * const pMyMachine);
 
@@ -114,6 +123,7 @@ enum BootStatesEnum {
     BOOT_DOWNLOAD_CHUNKS,
     BOOT_OPENSBI_INIT,
     BOOT_WAIT,
+    BOOT_COMPLETE,
     BOOT_IDLE,
     BOOT_ERROR,
     BOOT_NUM_STATES = BOOT_ERROR+1
@@ -131,6 +141,7 @@ static const struct StateDesc boot_state_descs[] = {
     { (const stateType_t)BOOT_DOWNLOAD_CHUNKS,    (const char *)"Download",         &boot_download_chunks_onEntry,    &boot_download_chunks_onExit, &boot_download_chunks_handler },
     { (const stateType_t)BOOT_OPENSBI_INIT,       (const char *)"OpenSBIInit",      &boot_opensbi_init_onEntry,       &boot_opensbi_init_onExit,    &boot_opensbi_init_handler },
     { (const stateType_t)BOOT_WAIT,               (const char *)"Wait",             &boot_wait_onEntry,               NULL,                         &boot_wait_handler },
+    { (const stateType_t)BOOT_COMPLETE,           (const char *)"Complete",         &boot_complete_onEntry,           NULL,                         &boot_complete_handler },
     { (const stateType_t)BOOT_IDLE,               (const char *)"Idle",             &boot_idle_onEntry,               NULL,                         &boot_idle_handler },
     { (const stateType_t)BOOT_ERROR,              (const char *)"Error",            NULL,                             NULL,                         &boot_error_handler } };
 
@@ -326,31 +337,34 @@ static bool check_for_ipi_acks(struct StateMachine * const pMyMachine)
 //
 static void boot_init_handler(struct StateMachine * const pMyMachine)
 {
-    if (pBootImage) {
-        //mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::\tstarting boot\n", pMyMachine->pMachineName);
+    if (HSS_Trigger_IsNotified(EVENT_DDR_TRAINED) && HSS_Trigger_IsNotified(EVENT_STARTUP_COMPLETE)) {
+        if (pBootImage) {
+            //mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::\tstarting boot\n", pMyMachine->pMachineName);
+            SYSREG->BOOT_FAIL_CR = 0;
 
-        pMyMachine->startTime = HSS_GetTime();
-        struct HSS_Boot_LocalData * const pInstanceData = pMyMachine->pInstanceData;
-        enum HSSHartId const target = pInstanceData->target;
+            pMyMachine->startTime = HSS_GetTime();
+            struct HSS_Boot_LocalData * const pInstanceData = pMyMachine->pInstanceData;
+            enum HSSHartId const target = pInstanceData->target;
 
-        if (pBootImage->hart[target-1].flags & BOOT_FLAG_SKIP_OPENSBI) {
-	   mHSS_DEBUG_PRINTF(LOG_STATUS, "%s:: BOOT_FLAG_SKIP_OPENSBI found\n", pMyMachine->pMachineName);
+            if (pBootImage->hart[target-1].flags & BOOT_FLAG_SKIP_OPENSBI) {
+	           mHSS_DEBUG_PRINTF(LOG_STATUS, "%s:: BOOT_FLAG_SKIP_OPENSBI found\n", pMyMachine->pMachineName);
+            }
+
+            HSS_PerfCtr_Allocate(&pInstanceData->perfCtr, pMyMachine->pMachineName);
+            pMyMachine->state = BOOT_SETUP_PMP;
+        } else {
+            // unexpected error state
+            if (!pBootImage) {
+                mHSS_DEBUG_PRINTF(LOG_ERROR, "%s::\tNo Boot Image registered\n", pMyMachine->pMachineName);
+            }
+            pMyMachine->state = BOOT_ERROR;
         }
-
-        HSS_PerfCtr_Allocate(&pInstanceData->perfCtr, pMyMachine->pMachineName);
-        pMyMachine->state = BOOT_SETUP_PMP;
-    } else {
-        // unexpected error state
-        if (!pBootImage) {
-            mHSS_DEBUG_PRINTF(LOG_ERROR, "%s::\tNo Boot Image registered\n", pMyMachine->pMachineName);
-        }
-        pMyMachine->state = BOOT_ERROR;
     }
 }
 
 /////////////////
 
-static void boot_setup_pmp_onEntry(struct StateMachine * const pMyMachine)
+static void register_harts(struct StateMachine * const pMyMachine)
 {
     struct HSS_Boot_LocalData * const pInstanceData = pMyMachine->pInstanceData;
     enum HSSHartId const target = pInstanceData->target;
@@ -384,15 +398,33 @@ static void boot_setup_pmp_onEntry(struct StateMachine * const pMyMachine)
             mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::Registering domain \"%s\" (hart mask 0x%x)\n",
                 pMyMachine->pMachineName, pBootImage->hart[target-1].name, pInstanceData->hartMask);
 
+            void *pArg1 = NULL;
+
+            if (pInstanceData->ancilliaryData) {
+                pArg1 = (void *)pInstanceData->ancilliaryData;
+#if IS_ENABLED(CONFIG_PROVIDE_DTB)
+            } else {
+                extern unsigned long _binary_build_services_opensbi_mpfs_dtb_start;
+                pArg1 = (void *)&_binary_build_services_opensbi_mpfs_dtb_start;
+                mHSS_DEBUG_PRINTF(LOG_WARN, "%s::Using built-in DTB at 0x%p\n",
+                    pMyMachine->pMachineName, pArg1);
+#endif
+            }
+
             mpfs_domains_register_boot_hart(pBootImage->hart[target-1].name,
                 pInstanceData->hartMask, target,
                 pBootImage->hart[target-1].privMode,
-                (void *)pBootImage->hart[target-1].entryPoint,
-                (void *)pInstanceData->ancilliaryData,
+                (void *)pBootImage->hart[target-1].entryPoint, pArg1,
 		pBootImage->hart[target-1].flags & BOOT_FLAG_ALLOW_COLD_REBOOT,
 		pBootImage->hart[target-1].flags & BOOT_FLAG_ALLOW_WARM_REBOOT);
         }
     }
+}
+
+static void boot_setup_pmp_onEntry(struct StateMachine * const pMyMachine)
+{
+    /* Initially register harts, so that IPIs work for remainder of boot */
+    register_harts(pMyMachine);
 }
 
 static void boot_setup_pmp_handler(struct StateMachine * const pMyMachine)
@@ -420,7 +452,6 @@ static void boot_setup_pmp_complete_onEntry(struct StateMachine * const pMyMachi
 
 static void boot_setup_pmp_complete_handler(struct StateMachine * const pMyMachine)
 {
-
     struct HSS_Boot_LocalData * const pInstanceData = pMyMachine->pInstanceData;
     enum HSSHartId const target = pInstanceData->target;
 
@@ -444,7 +475,7 @@ static void boot_setup_pmp_complete_handler(struct StateMachine * const pMyMachi
             //mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::PMP setup completed\n", pMyMachine->pMachineName);
 
         if (pBootImage->hart[target-1].flags & BOOT_FLAG_SKIP_AUTOBOOT)
-            pMyMachine->state = BOOT_IDLE;
+            pMyMachine->state = BOOT_COMPLETE;
         else
             pMyMachine->state = BOOT_ZERO_INIT_CHUNKS;
         }
@@ -473,14 +504,20 @@ static void boot_zero_init_chunks_handler(struct StateMachine * const pMyMachine
 
     if (pZiChunk->size != 0u) {
         if (target == pZiChunk->owner) {
+            if (HSS_DDR_IsAddrInDDR((uintptr_t)pZiChunk->execAddr) && !HSS_Trigger_IsNotified(EVENT_DDR_TRAINED)) {
+                ; // need to wait until DDR is initialized
+            } else {
 #if IS_ENABLED(CONFIG_DEBUG_CHUNK_DOWNLOADS)
-            mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::%d:ziChunk->0x%x, %u bytes\n",
-                pMyMachine->pMachineName, pInstanceData->ziChunkCount,
-                (uintptr_t)pZiChunk->execAddr, pZiChunk->size);
+                mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::%d:ziChunk->0x%x, %u bytes\n",
+                    pMyMachine->pMachineName, pInstanceData->ziChunkCount,
+                    (uintptr_t)pZiChunk->execAddr, pZiChunk->size);
 #endif
-            boot_do_zero_init_chunk(pZiChunk);
+                boot_do_zero_init_chunk(pZiChunk);
+                pInstanceData->pZiChunk++;
+            }
+        } else {
+            pInstanceData->pZiChunk++;
         }
-        pInstanceData->pZiChunk++;
     } else {
         pMyMachine->state = BOOT_DOWNLOAD_CHUNKS;
     }
@@ -595,12 +632,14 @@ static void boot_download_chunks_handler(struct StateMachine * const pMyMachine)
             pMyMachine->state = BOOT_OPENSBI_INIT;
         }
     } else {
-        pMyMachine->state = BOOT_IDLE;
+        pMyMachine->state = BOOT_COMPLETE;
     }
 }
 
 static void boot_download_chunks_onExit(struct StateMachine * const pMyMachine)
 {
+    /* Re-register harts now that we've fully parsed the boot image (ancillary data etc) */
+    register_harts(pMyMachine);
 }
 
 /////////////////
@@ -718,7 +757,7 @@ static void boot_wait_handler(struct StateMachine * const pMyMachine)
     if (!pBootImage->hart[target-1].entryPoint) {
         // nothing for me to do, not expecting GOTO ack...
         HSS_U54_SetState_Ex(target, HSS_State_Idle);
-        pMyMachine->state = BOOT_IDLE;
+        pMyMachine->state = BOOT_COMPLETE;
     } else if (HSS_Timer_IsElapsed(pMyMachine->startTime, BOOT_WAIT_TIMEOUT)) {
         mHSS_DEBUG_PRINTF(LOG_ERROR, "%s::IPI ACK Timeout after %" PRIu64 " iterations\n",
             pMyMachine->pMachineName, pMyMachine->executionCount);
@@ -740,7 +779,7 @@ static void boot_wait_handler(struct StateMachine * const pMyMachine)
 
             //mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::Checking for IPI ACKs: ACK/IDLE ACK\n",
             //    pMyMachine->pMachineName);
-            pMyMachine->state = BOOT_IDLE;
+            pMyMachine->state = BOOT_COMPLETE;
         }
     }
 }
@@ -756,12 +795,41 @@ static void boot_error_handler(struct StateMachine * const pMyMachine)
         pMyMachine->pMachineName);
 
     // Set BOOT_FAIL_CR to indicate to the fabric that boot process failed...
-    // SYSREG->BOOT_FAIL_CR = 1;
+    SYSREG->BOOT_FAIL_CR = 1;
 
-    pMyMachine->state = BOOT_IDLE;
+    pMyMachine->state = BOOT_COMPLETE;
 }
 
 
+/////////////////
+
+atomic_t bootComplete[5] = {
+     ATOMIC_INITIALIZER(0),
+     ATOMIC_INITIALIZER(0),
+     ATOMIC_INITIALIZER(0),
+     ATOMIC_INITIALIZER(0),
+     ATOMIC_INITIALIZER(0),
+};
+
+static void boot_complete_onEntry(struct StateMachine * const pMyMachine)
+{
+    struct HSS_Boot_LocalData const * const pInstanceData = pMyMachine->pInstanceData;
+    enum HSSHartId const hartId = pInstanceData->target;
+    atomic_write(&bootComplete[hartId], 1);
+}
+
+static void boot_complete_handler(struct StateMachine * const pMyMachine)
+{
+    bool all_complete = atomic_read(&bootComplete[1]) ? true : false;
+    all_complete &= atomic_read(&bootComplete[2]) ? true : false;
+    all_complete &= atomic_read(&bootComplete[3]) ? true : false;
+    all_complete &= atomic_read(&bootComplete[4]) ? true : false;
+
+    if (all_complete) {
+       HSS_Trigger_Notify(EVENT_BOOT_COMPLETE);
+       pMyMachine->state = BOOT_IDLE;
+   }
+}
 /////////////////
 
 static void boot_idle_onEntry(struct StateMachine * const pMyMachine)
@@ -783,7 +851,8 @@ static void boot_idle_handler(struct StateMachine * const pMyMachine)
 // PUBLIC API
 //
 
-bool HSS_Boot_Harts(const union HSSHartBitmask restartHartBitmask)
+static bool boot_using_hart_bitmask_(const union HSSHartBitmask restartHartBitmask);
+static bool boot_using_hart_bitmask_(const union HSSHartBitmask restartHartBitmask)
 {
     bool result = false;
 
@@ -816,6 +885,7 @@ bool HSS_Boot_Harts(const union HSSHartBitmask restartHartBitmask)
         }
     }
 
+    HSS_Trigger_Notify(EVENT_POST_BOOT);
     return result;
 }
 
@@ -823,45 +893,72 @@ enum IPIStatusCode HSS_Boot_RestartCore(enum HSSHartId source)
 {
     enum IPIStatusCode result = IPI_FAIL;
 
-    if (!HSS_Boot_ValidateImage(pBootImage)) {
-        mHSS_DEBUG_PRINTF(LOG_ERROR, "validation failed for u54_%u\n", source);
-    } else if (source != HSS_HART_ALL) {
-        //mHSS_DEBUG_PRINTF(LOG_NORMAL, "called for u54_%u\n", source);
+    assert(pBootImage);
 
-        union HSSHartBitmask restartHartBitmask = { .uint = 0u };
+    if (source != HSS_HART_ALL) {
+        union HSSHartBitmask restartHartBitmask = { .uint = BIT(source) };
 
-        // in interrupts-always-enabled world of the HSS, it would appear less
-        // racey to boot secondary cores first and have them all wait...
-        for (unsigned int i = 0u; i < ARRAY_SIZE(bootMachine); i++) {
-            enum HSSHartId peer = bootMachine[i].hartId;
-
-            if (peer == source) { continue; } // skip myself
-
-            if (pBootImage->hart[peer-1].entryPoint == pBootImage->hart[source-1].entryPoint) {
-                // found another hart in same boot set as me...
-                restartHartBitmask.uint |= (1u << peer);
-            }
-        }
-
-        restartHartBitmask.uint |= (1u << source);
-
-        if (pBootImage->hart[source-1].numChunks && HSS_Boot_Harts(restartHartBitmask)) {
-                result = IPI_SUCCESS;
-        }
+        result = HSS_Boot_RestartCores_Using_Bitmask(restartHartBitmask);
     } else {
-        //mHSS_DEBUG_PRINTF(LOG_NORMAL, "called for all harts\n");
+        if (!HSS_Boot_ValidateImage(pBootImage)) {
+            mHSS_DEBUG_PRINTF(LOG_ERROR, "validation failed for u54_%u\n", source);
+        } else {
+            //mHSS_DEBUG_PRINTF(LOG_NORMAL, "called for all harts\n");
 
-        const union HSSHartBitmask restartHartBitmask = {
-            .s = { .u54_1 = 1, .u54_2 = 1, .u54_3 = 1, .u54_4 = 1, }
-        };
+            const union HSSHartBitmask restartHartBitmask = {
+                .s = { .u54_1 = 1, .u54_2 = 1, .u54_3 = 1, .u54_4 = 1, }
+            };
 
-        if (HSS_Boot_Harts(restartHartBitmask)) {
-            result = IPI_SUCCESS;
+            if (boot_using_hart_bitmask_(restartHartBitmask)) {
+                result = IPI_SUCCESS;
+            }
         }
     }
 
     return result;
 }
+
+enum IPIStatusCode HSS_Boot_RestartCores_Using_Bitmask(union HSSHartBitmask restartHartBitmask)
+{
+    enum IPIStatusCode result = IPI_FAIL;
+
+    if (!pBootImage) {
+        mHSS_DEBUG_PRINTF(LOG_ERROR, "pBootImage is NULL\n");
+    } else if (!HSS_Boot_ValidateImage(pBootImage)) {
+        mHSS_DEBUG_PRINTF(LOG_ERROR, "validation failed for Hart bitmask %x\n", restartHartBitmask.uint);
+    } else {
+        for (unsigned int source = HSS_HART_U54_1;
+             (source < HSS_HART_NUM_PEERS); source++) {
+            union HSSHartBitmask localRestartHartBitmask = { .uint = 0u };
+
+            if (!(restartHartBitmask.uint & (unsigned int)BIT(source))) { continue; }
+
+            // in interrupts-always-enabled world of the HSS, it would appear less
+            // racey to boot secondary cores first and have them all wait...
+            for (unsigned int i = 0u; i < ARRAY_SIZE(bootMachine); i++) {
+                enum HSSHartId peer = bootMachine[i].hartId;
+
+                if (peer == source) { continue; } // skip myself
+
+                if (pBootImage->hart[peer-1].entryPoint == pBootImage->hart[source-1].entryPoint) {
+                    // found another hart in same boot set as me...
+                    localRestartHartBitmask.uint |= (1u << peer);
+                }
+            }
+
+            localRestartHartBitmask.uint |= (1u << source);
+
+            if (pBootImage->hart[source-1].numChunks && boot_using_hart_bitmask_(localRestartHartBitmask)) {
+                    result = IPI_SUCCESS;
+            }
+
+            restartHartBitmask.uint &= (~localRestartHartBitmask.uint);
+        }
+    }
+
+    return result;
+}
+
 
 bool HSS_SkipBoot_IsSet(enum HSSHartId target)
 {
@@ -957,7 +1054,11 @@ bool HSS_Boot_ValidateImage(struct HSS_BootImage *pImage)
             mHSS_DEBUG_PRINTF(LOG_ERROR, "Boot Image failed code signing\n");
 #  endif
         } else if (validateCrc_(pImage)) {
-            mHSS_DEBUG_PRINTF(LOG_STATUS, "Boot image passed CRC\n");
+            //mHSS_DEBUG_PRINTF(LOG_STATUS, "Boot image passed CRC\n");
+
+#if IS_ENABLED(CONFIG_SERVICE_GPIO_UI)
+            HSS_GPIO_UI_ReportImageGoodCRC();
+#endif
 
         // GCC 9.x appears to dislike the pImage cast, and sees dereferencing the
         // set name as an out-of-bounds... So we'll disable that warning just for
@@ -1196,7 +1297,7 @@ bool HSS_Boot_SBISetupRequest(enum HSSHartId target, uint32_t *indexOut)
 
         // couldn't send message, so free up resources...
         if (!result) {
-            mHSS_DEBUG_PRINTF(LOG_NORMAL, "u54_%u: failed to send message, so freeing\n", target); //TODO
+            mHSS_DEBUG_PRINTF(LOG_NORMAL, "u54_%u: failed to send message, so freeing\n", target);
             IPI_MessageFree(*indexOut);
         }
     }

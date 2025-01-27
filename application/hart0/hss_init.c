@@ -23,6 +23,7 @@
 
 #include "hss_atomic.h"
 #include "hss_init.h"
+#include "hss_board_init.h"
 #include "hss_version.h"
 #if IS_ENABLED(CONFIG_SERVICE_TINYCLI)
 #  include "tinycli_service.h"
@@ -31,12 +32,14 @@
 #include "csr_helper.h"
 
 #if IS_ENABLED(CONFIG_SERVICE_BOOT)
+#  include "hss_boot_init.h"
 #  include "hss_boot_service.h"
 #endif
 
 #if IS_ENABLED(CONFIG_OPENSBI)
 #  include "sbi/riscv_asm.h"
 #  include "sbi/sbi_version.h"
+#  include "opensbi_service.h"
 #endif
 
 #include "hss_sys_setup.h"
@@ -90,8 +93,9 @@ extern const uint64_t _hss_start;
 //
 //  #define DDRHI_START                (&__ddrhi_start)
 asm(".align 3\n"
-    "hss_init_ddrhi_start: .quad (__ddrhi_start)\n");
-asm(".align 3\n"
+    ".globl hss_init_ddrhi_start\n"
+    ".globl hss_init_ddrhi_end\n\t"
+    "hss_init_ddrhi_start: .quad (__ddrhi_start)\n\t"
     "hss_init_ddrhi_end: .quad (__ddrhi_max_end)\n");
 
 extern const uint64_t hss_init_ddrhi_start, hss_init_ddrhi_end;
@@ -198,7 +202,7 @@ bool HSS_E51_Banner(void)
 #endif
         " / BOARD=" STR(BOARD)
         "\n"
-        "(c) Copyright 2017-2022 Microchip FPGA Embedded Systems Solutions.\n\n"
+        "(c) Copyright 2017-2024 Microchip FPGA Embedded Systems Solutions.\n\n"
         "incorporating OpenSBI - version %d.%d\n"
         "(c) Copyright 2019-2022 Western Digital Corporation.\n\n",
         HSS_VERSION_MAJOR, HSS_VERSION_MINOR, HSS_VERSION_PATCH,
@@ -222,9 +226,9 @@ bool HSS_E51_Banner(void)
     HSS_PrintToolVersions();
 #endif
 
-    if (&_hss_start == &__l2_start) {
-        mHSS_FANCY_PRINTF(LOG_WARN, "NOTICE: Running from L2 Scratchpad\n\n");
-    }
+    //if (&_hss_start == &__l2_start) {
+    //    mHSS_FANCY_PRINTF(LOG_WARN, "NOTICE: Running from L2 Scratchpad\n\n");
+    //}
 
     return true;
 }
@@ -233,7 +237,7 @@ bool HSS_E51_Banner(void)
 bool HSS_ResetReasonInit(void)
 {
 #if IS_ENABLED(CONFIG_DEBUG_RESET_REASON)
-    uint8_t reset_reason = SYSREG->RESET_SR;
+    uint32_t reset_reason = SYSREG->RESET_SR;
 
     const char* const reset_reason_string[] = {
         [ RESET_SR_SCB_PERIPH_RESET_OFFSET ]	= "SCB peripheral reset signal",
@@ -270,17 +274,7 @@ bool HSS_ResetReasonInit(void)
 
 void HSS_Init(void)
 {
-    RunInitFunctions(spanOfGlobalInitFunctions, globalInitFunctions);
-
-#if IS_ENABLED(CONFIG_SERVICE_BOOT)
-    HSS_Boot_RestartCore(HSS_HART_ALL);
-
-#    if IS_ENABLED(CONFIG_UART_SURRENDER)
-#        if IS_ENABLED(CONFIG_SERVICE_TINYCLI)
-    HSS_TinyCLI_SurrenderUART();
-#        endif
-    void uart_surrender(void);
-    uart_surrender();
-#    endif
-#endif
+    HSS_Init_RWDATA_BSS();
+    HSS_UARTInit();
+    HSS_OpenSBIInit();
 }

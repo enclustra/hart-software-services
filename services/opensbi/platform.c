@@ -66,7 +66,7 @@
 
 #include "mpfs_reg_map.h"
 
-#include "wdog_service.h"
+#include "reboot_service.h"
 #include "clocks/hw_mss_clks.h"    // LIBERO_SETTING_MSS_RTC_TOGGLE_CLK
 
 #define MPFS_HART_COUNT            5
@@ -214,8 +214,7 @@ static bool console_initialized = false;
 #if IS_ENABLED(CONFIG_UART_SURRENDER)
 static bool uart_surrendered_flag = false;
 
-void uart_surrender(void);
-void uart_surrender(void)
+void mpfs_uart_surrender(void)
 {
     uart_surrendered_flag = true;
 }
@@ -284,6 +283,7 @@ static int mpfs_irqchip_init(bool cold_boot)
         //
         // we'll do it ourselves to customize behavior..
         //const int m_cntx_id =  (hartid) ? (2 * hartid - 1) : 0;
+
         const int s_cntx_id =  (hartid) ? (2 * hartid) : -1;
         struct plic_data * const plic = &plicInfo;
         size_t i, ie_words;
@@ -301,6 +301,9 @@ static int mpfs_irqchip_init(bool cold_boot)
             //        plic_set_ie(plic, m_cntx_id, i, 0);
             //    }
             //}
+
+            extern void plic_set_ie(const struct plic_data *plic, u32 cntxid, u32 word_index, u32 val);
+            extern void plic_set_thresh(const struct plic_data *plic, u32 cntxid, u32 val);
 
             /* By default, disable all IRQs for S-mode of target HART */
             if (s_cntx_id > -1) {
@@ -567,8 +570,8 @@ static int mpfs_hart_stop(void)
 #if IS_ENABLED(CONFIG_ALLOW_COLDREBOOT)
         case SBI_SRST_RESET_TYPE_COLD_REBOOT:
             if (IS_ENABLED(CONFIG_ALLOW_COLDREBOOT_ALWAYS) || hart_ledger[hartid].allow_cold_reboot) {
-#  if IS_ENABLED(CONFIG_SERVICE_WDOG)
-                HSS_Wdog_Reboot(HSS_HART_ALL);
+#  if IS_ENABLED(CONFIG_SERVICE_REBOOT)
+                HSS_reboot_cold(HSS_HART_ALL);
 #endif
             } else {
                 mHSS_DEBUG_PRINTF(LOG_ERROR, "u54_%d not permitted to cold reboot\n", hartid);

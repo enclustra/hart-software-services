@@ -98,8 +98,7 @@ CFLAGS=-std=c11 $(CORE_CFLAGS) $(PLATFORM_CFLAGS) -Wmissing-prototypes
 CFLAGS_GCCEXT=$(CORE_CFLAGS) $(PLATFORM_CFLAGS)
 #OPT-y=-O2
 #OPT-y+=-Os -funroll-loops -fpeel-loops -fgcse-sm -fgcse-las
-OPT-y+=-Os -fno-strict-aliasing -fwhole-program -Wno-lto-type-mismatch
-#OPT-y+=-Os -fno-strict-aliasing
+OPT-y+=-Os -fno-strict-aliasing
 
 ifndef CONFIG_LD_RELAX
 OPT-y+=-Wl,--no-relax
@@ -115,8 +114,10 @@ ifdef CONFIG_CC_STACKPROTECTOR_STRONG
   # CORE_CFLAGS+=-fstack-clash-protection  # currently does nothing on RISC-V
 else
   $(info INFO: NOTICE: enabling -flto (which means stack protection is disabled))
-  OPT-y+=-flto=auto -ffat-lto-objects -fcompare-debug -fno-stack-protector
+  OPT-y+=-flto=auto -ffat-lto-objects -fno-stack-protector
+  OPT-y+=-fwhole-program -Wno-lto-type-mismatch
 endif
+
 
 ##############################################################################
 #
@@ -126,7 +127,7 @@ endif
 
 ifeq ($(HOST_LINUX), true)
   ifeq ($, $(shell which $(CC)))
-    $(error "No $(CC) in $(PATH)"
+    $(error "No $(CC) in $(PATH)")
   endif
   CC_VERSION = $(strip $(shell $(CC) -dumpversion))
   EXPECTED_CC_VERSION := 8.3.0
@@ -151,36 +152,45 @@ else
 .SILENT:
 endif
 
-OBJS = $(SRCS-y:.c=.o)
-EXTRA_OBJS += $(EXTRA_SRCS-y:.c=.o) $(ASM_SRCS:.S=.o) $(EXTRA_OBJS-y) $(ASM_SRCS-y:.S=.o)
+OBJS = $(addprefix $(BINDIR)/,$(SRCS-y:.c=.o))
+EXTRA_OBJS += $(addprefix $(BINDIR)/,$(EXTRA_SRCS-y:.c=.o))
+EXTRA_OBJS += $(addprefix $(BINDIR)/,$(ASM_SRCS:.S=.o))
+EXTRA_OBJS += $(addprefix $(BINDIR)/,$(EXTRA_OBJS-y))
+EXTRA_OBJS += $(addprefix $(BINDIR)/,$(ASM_SRCS-y:.S=.o))
 
 .SUFFIXES:
 
-%.s: %.c config.h
+%.s: %.c $(CONFIG_H)
 	$(ECHO) " CC -s     $@"
 	$(CC) $(CFLAGS_GCCEXT) $(OPT-y) $(INCLUDES) -c -S -g  $<  -o $@
 
-%.S: %.c config.h
+%.S: %.c $($(CONFIG_H)
 	$(ECHO) " CC -S     $@"
 	$(CC) $(CFLAGS_GCCEXT) $(OPT-y) $(INCLUDES) -c -Wa,-adhln -g  $<  > $@
 
-%.e: %.c config.h
+%.e: %.c $($(CONFIG_H)
 	$(ECHO) " CC -E     $@"
 	$(CC) $(CFLAGS_GCCEXT) $(OPT-y) $(INCLUDES) -c -E -o $@ $<
 
-%.e: %.s config.h
+%.e: %.s $($(CONFIG_H)
 	$(ECHO) " CC -E     $@"
 	$(CC) $(CFLAGS_GCCEXT) $(OPT-y) $(INCLUDES) -c -E -o $@ $<
 
 ifdef CONFIG_CC_USE_MAKEDEP
-  %.o: %.c config.h %.d
+  $(BINDIR)/%.o: %.c $(CONFIG_H) $(BINDIR)/%.d
 else
-  %.o: %.c config.h
+  $(BINDIR)/%.o: %.c $(CONFIG_H)
 endif
+	if [ ! -d `dirname $@` ]; then mkdir -p `dirname $@`; fi
 	$(ECHO) " CC        $@"
 	$(CC) $(CFLAGS) $(OPT-y) $(INCLUDES) -c -o $@ $<
 
-%.o: %.S config.h
+%.o: %.c $(CONFIG_H)
+	$(ECHO) " CC        $@"
+	$(CC) $(CFLAGS) $(OPT-y) $(INCLUDES) -c -o $@ $<
+
+$(BINDIR)/%.o: %.S $(CONFIG_H)
+	if [ ! -d `dirname $@` ]; then mkdir -p `dirname $@`; fi
 	$(ECHO) " CC        $@"
 	$(CC) $(CFLAGS) $(OPT-y) $(INCLUDES) -D__ASSEMBLY__=1 -c -o $@ $<
 
@@ -201,13 +211,15 @@ endif
 	$(ECHO) " BIN       $@"
 	$(OBJCOPY) -O binary $< $@
 
-%.ld: %.lds config.h
+%.ld: %.lds $(CONFIG_H)
 	$(ECHO) " CPP       $@"
 	$(CPP) -P $(INCLUDES) $< -o $@
 
 #
-%.d: %.c
-	$(MAKEDEP) -f - $(INCLUDES) $< 2>/dev/null | sed 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\)\n\1 : \2,g' > $*.d
+$(BINDIR)/%.d: %.c
+	if [ ! -d `dirname $@` ]; then mkdir -p `dirname $@`; fi
+	$(MAKEDEP) -f - $(INCLUDES) $< 2>/dev/null | sed 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\)\n\1 : \2,g' > $(BINDIR)/$*.d
 
-%.d: %.S
-	$(MAKEDEP) -f - $(INCLUDES) $< 2>/dev/null | sed 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\)\n\1 : \2,g' > $*.d
+$(BINDIR)/%.d: %.S
+	if [ ! -d `dirname $@` ]; then mkdir -p `dirname $@`; fi
+	$(MAKEDEP) -f - $(INCLUDES) $< 2>/dev/null | sed 's,\($*\.o\)[ :]*\(.*\),$@ : $$\(wildcard \2\)\n\1 : \2,g' > $(BINDIR)/$*.d

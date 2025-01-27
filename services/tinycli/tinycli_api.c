@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright 2019-2022 Microchip FPGA Embedded Systems Solutions.
+/*
+ * Copyright 2019-2024 Microchip FPGA Embedded Systems Solutions.
  *
  * SPDX-License-Identifier: MIT
  *
@@ -35,8 +35,11 @@
 #include "uart_helper.h"
 #include "ddr_service.h"
 #include "csr_helper.h"
+#include "reboot_service.h"
 #include "wdog_service.h"
 #include "hss_perfctr.h"
+#include "profiling.h"
+#include "hss_trigger.h"
 #include "u54_state.h"
 
 #include "hss_registry.h"
@@ -60,6 +63,10 @@
 #    include "beu_service.h"
 #endif
 
+#if IS_ENABLED(CONFIG_SERVICE_HEALTHMON)
+#    include "healthmon_service.h"
+#endif
+
 #if IS_ENABLED(CONFIG_CRYPTO_SIGNING)
 #    include "hss_boot_secure.h"
 #endif
@@ -71,7 +78,6 @@
 #define mMAX_NUM_TOKENS 40
 static size_t argc_tokenCount = 0u;
 static char *argv_tokenArray[mMAX_NUM_TOKENS];
-static bool quitFlag = false;
 static size_t tokenId;
 
 #if IS_ENABLED(CONFIG_SERVICE_TINYCLI_MONITOR)
@@ -106,12 +112,14 @@ static void tinyCLI_PrintUptime_(void);
 static void tinyCLI_PrintHelp_(void);
 static void tinyCLI_Debug_(void);
 static void tinyCLI_Reset_(void);
-#if IS_ENABLED(CONFIG_SERVICE_MMC) && IS_ENABLED(CONFIG_SERVICE_BOOT)
+#if IS_ENABLED(CONFIG_SERVICE_BOOT)
+#if IS_ENABLED(CONFIG_SERVICE_MMC)
 static void tinyCLI_Boot_List_(void);
 static void tinyCLI_Boot_Select_(void);
 #endif
 static void tinyCLI_Boot_Info_(void);
 static void tinyCLI_Boot_(void);
+#endif
 #if IS_ENABLED(CONFIG_SERVICE_QSPI)
 static void tinyCLI_QSPI_Scan_(void);
 static void tinyCLI_QSPI_Erase_(void);
@@ -141,18 +149,26 @@ static void tinyCLI_Scrub_(void);
 static void output_duration_(char const * const description, const uint32_t val, bool continuation);
 static void tinyCLI_DumpStateMachines_(void);
 static void tinyCLI_IPIDumpStats_(void);
-static void tinyCLI_Quit_(void);
 static void tinyCLI_EMMC_(void);
 static void tinyCLI_MMC_(void);
 static void tinyCLI_SDCARD_(void);
 static void tinyCLI_Payload_(void);
 static void tinyCLI_SPI_(void);
+#if IS_ENABLED(CONFIG_SERVICE_USBDMSC) && (IS_ENABLED(CONFIG_SERVICE_MMC) || IS_ENABLED(CONFIG_SERVICE_QSPI))
 static void tinyCLI_USBDMSC_(void);
+#endif
 #if IS_ENABLED(CONFIG_SERVICE_BEU)
 static void tinyCLI_BEU_(void);
+static void tinyCLI_ECC_(void);
+#endif
+#if IS_ENABLED(CONFIG_SERVICE_HEALTHMON)
+static void tinyCLI_HEALTHMON_(void);
 #endif
 #if IS_ENABLED(CONFIG_DEBUG_PERF_CTRS)
 static void tinyCLI_PerfCtrs_(void);
+#endif
+#if IS_ENABLED(CONFIG_DEBUG_PROFILING_SUPPORT)
+static void tinyCLI_ProfileCtrs_(void);
 #endif
 static void tinyCLI_OpenSBI_(void);
 static void tinyCLI_Seg_(void);
@@ -160,12 +176,8 @@ static void tinyCLI_L2Cache_(void);
 static bool dispatch_command_(struct tinycli_cmd const * const pCmds, size_t arraySize, uint8_t level);
 static void display_help_(struct tinycli_cmd const * const pCmds, size_t arraySize, uint8_t level);
 
-
-static bool postInit = false;
-
 enum CmdId {
     CMD_YMODEM,
-    CMD_QUIT,
     CMD_BOOT,
     CMD_RESET,
     CMD_HELP,
@@ -181,9 +193,11 @@ enum CmdId {
     CMD_SPI,
     CMD_USBDMSC,
     CMD_SCRUB,
+    CMD_ECC,
     CMD_INVALID,
 
     CMD_DBG_BEU,
+    CMD_DBG_HEALTHMON,
     CMD_DBG_SM,
     CMD_DBG_IPI,
     CMD_DBG_CRC32,
@@ -223,6 +237,9 @@ static const struct tinycli_cmd debugCmds[] = {
 #if IS_ENABLED(CONFIG_SERVICE_BEU)
     { CMD_DBG_BEU,      "BEU",     "debug Bus Error Unit monitor", tinyCLI_BEU_ },
 #endif
+#if IS_ENABLED(CONFIG_SERVICE_HEALTHMON)
+    { CMD_DBG_HEALTHMON, "HEALTHMON", "debug health monitor", tinyCLI_HEALTHMON_ },
+#endif
     { CMD_DBG_SM,       "SM",      "debug state machines", tinyCLI_DumpStateMachines_ },
     { CMD_DBG_IPI,      "IPI",     "debug HSS IPI Queues", tinyCLI_IPIDumpStats_ },
     { CMD_DBG_CRC32,    "CRC32",   "calculate CRC32 over memory region", tinyCLI_CRC32_ },
@@ -236,9 +253,15 @@ static const struct tinycli_cmd debugCmds[] = {
 #if IS_ENABLED(CONFIG_DEBUG_PERF_CTRS)
     { CMD_DBG_PERFCTR , "PERFCTR", "display perf counters", tinyCLI_PerfCtrs_ },
 #endif
+#if IS_ENABLED(CONFIG_DEBUG_PROFILING_SUPPORT)
+    { CMD_DBG_PERFCTR , "PROFILE", "display profiling counters", tinyCLI_ProfileCtrs_ },
+#endif
+#if IS_ENABLED(CONFIG_SERVICE_WDOG)
     { CMD_DBG_WDOG ,    "WDOG",    "display watchdog statistics", HSS_Wdog_DumpStats },
+#endif
 };
 
+#if IS_ENABLED(CONFIG_SERVICE_BOOT)
 static const struct tinycli_cmd bootCmds[] = {
     { CMD_BOOT_INFO,   "INFO",     "display info about currently registered boot image", tinyCLI_Boot_Info_ },
 #if IS_ENABLED(CONFIG_SERVICE_MMC)
@@ -246,6 +269,7 @@ static const struct tinycli_cmd bootCmds[] = {
     { CMD_BOOT_SELECT, "SELECT",   "select active boot partition", tinyCLI_Boot_Select_ },
 #endif
 };
+#endif
 
 #if IS_ENABLED(CONFIG_SERVICE_QSPI)
 static const struct tinycli_cmd qspiCmds[] = {
@@ -258,8 +282,9 @@ static const struct tinycli_cmd toplevelCmds[] = {
 #if IS_ENABLED(CONFIG_SERVICE_YMODEM)
     { CMD_YMODEM,  "YMODEM",  "Run YMODEM utility to download an image to DDR.", tinyCLI_YModem_ },
 #endif
-    { CMD_QUIT,    "QUIT",    "Quit TinyCLI and return to regular boot process.", tinyCLI_Quit_ },
+#if IS_ENABLED(CONFIG_SERVICE_BOOT)
     { CMD_BOOT,    "BOOT",    "Quit TinyCLI and return to regular boot process.", tinyCLI_Boot_ },
+#endif
     { CMD_RESET,   "RESET",   "Reset PolarFire SoC.", tinyCLI_Reset_ },
     { CMD_HELP,    "HELP",    "Display command summary / command help information.", tinyCLI_PrintHelp_ },
     { CMD_VERSION, "VERSION", "Display system version information.", tinyCLI_PrintVersion_ },
@@ -280,14 +305,18 @@ static const struct tinycli_cmd toplevelCmds[] = {
 #if IS_ENABLED(CONFIG_SERVICE_SCRUB)
     { CMD_SCRUB,   "SCRUB",   "Dump Scrub service stats.", tinyCLI_Scrub_ },
 #endif
+#if IS_ENABLED(CONFIG_SERVICE_BEU)
+    { CMD_ECC,     "ECC",   "Dump ECC stats.", tinyCLI_ECC_ },
+#endif
 };
 
-static const struct tinycli_toplevel_cmd_safe toplevelCmdsSafeAfterBootFlags[] = {
+static struct tinycli_toplevel_cmd_safe toplevelCmdsSafeAfterBootFlags[] = {
 #if IS_ENABLED(CONFIG_SERVICE_YMODEM)
     { CMD_YMODEM,  true },
 #endif
-    { CMD_QUIT,    true },
-    { CMD_BOOT,    true },
+#if IS_ENABLED(CONFIG_SERVICE_BOOT)
+    { CMD_BOOT,    false },
+#endif
     { CMD_RESET,   true },
     { CMD_HELP,    false },
     { CMD_VERSION, false },
@@ -306,7 +335,10 @@ static const struct tinycli_toplevel_cmd_safe toplevelCmdsSafeAfterBootFlags[] =
     { CMD_USBDMSC, true },
 #endif
 #if IS_ENABLED(CONFIG_SERVICE_SCRUB)
-    { CMD_SCRUB,   true },
+    { CMD_SCRUB,   false },
+#endif
+#if IS_ENABLED(CONFIG_SERVICE_BEU)
+    { CMD_ECC,     false },
 #endif
 };
 
@@ -446,8 +478,8 @@ static void tinyCLI_PrintHelp_(void)
 
 static void tinyCLI_Reset_(void)
 {
-#if IS_ENABLED(CONFIG_SERVICE_WDOG)
-    HSS_Wdog_Reboot(HSS_HART_ALL);
+#if IS_ENABLED(CONFIG_SERVICE_REBOOT)
+    HSS_reboot_cold(HSS_HART_ALL);
 #endif
 }
 
@@ -471,8 +503,16 @@ static void tinyCLI_L2Cache_(void)
 }
 
 #if IS_ENABLED(CONFIG_SERVICE_BEU)
-static void tinyCLI_BEU_(void) {
+static void tinyCLI_BEU_(void)
+{
     HSS_BEU_DumpStats();
+}
+#endif
+
+#if IS_ENABLED(CONFIG_SERVICE_HEALTHMON)
+static void tinyCLI_HEALTHMON_(void)
+{
+    HSS_Health_DumpStats();
 }
 #endif
 
@@ -483,6 +523,12 @@ static void tinyCLI_PerfCtrs_(void)
 }
 #endif
 
+#if IS_ENABLED(CONFIG_DEBUG_PROFILING_SUPPORT)
+static void tinyCLI_ProfileCtrs_(void)
+{
+    HSS_Profile_DumpAll();
+}
+#endif
 
 static void tinyCLI_DumpStateMachines_(void)
 {
@@ -503,6 +549,7 @@ static void tinyCLI_Debug_(void)
 }
 
 extern struct HSS_Storage *HSS_BootGetActiveStorage(void);
+#if IS_ENABLED(CONFIG_SERVICE_BOOT)
 
 extern struct HSS_BootImage *pBootImage;
 static void tinyCLI_Boot_Info_(void)
@@ -594,8 +641,12 @@ static void tinyCLI_Boot_Select_(void)
 
 static void tinyCLI_Boot_(void)
 {
-    quitFlag = !dispatch_command_(bootCmds, ARRAY_SIZE(bootCmds), 1u);
+    if (!dispatch_command_(bootCmds, ARRAY_SIZE(bootCmds), 1u)) {
+        if (HSS_BootInit()) { HSS_BootHarts(); } // attempt boot
+    }
 }
+
+#endif
 
 #if IS_ENABLED(CONFIG_SERVICE_QSPI)
 extern uint32_t Flash_scan_for_bad_blocks(uint16_t* buf);
@@ -843,11 +894,6 @@ static void tinyCLI_Scrub_(void)
 }
 #endif
 
-static void tinyCLI_Quit_(void)
-{
-    quitFlag = true;
-}
-
 static void tinyCLI_EMMC_(void)
 {
 #if IS_ENABLED(CONFIG_SERVICE_MMC)
@@ -877,7 +923,7 @@ static void tinyCLI_SDCARD_(void)
 
 static void tinyCLI_Payload_(void)
 {
-#if IS_ENABLED(CONFIG_SERVICE_PAYLOAD) && (IS_ENABLED(CONFIG_SERVICE_MMC) || IS_ENABLED(CONFIG_SERVICE_QSPI) || IS_ENABLED(CONFIG_SERVICE_SPI))
+#if IS_ENABLED(CONFIG_SERVICE_BOOT_USE_PAYLOAD)
     HSS_BootSelectPayload();
 #else
     tinyCLI_UnsupportedBootMechanism_("Payload");
@@ -896,28 +942,9 @@ static void tinyCLI_SPI_(void)
 #if IS_ENABLED(CONFIG_SERVICE_USBDMSC) && (IS_ENABLED(CONFIG_SERVICE_MMC) || IS_ENABLED(CONFIG_SERVICE_QSPI))
 static void tinyCLI_USBDMSC_(void)
 {
-    USBDMSC_Init();
-    USBDMSC_Start();
+    //USBDMSC_Init();
+    USBDMSC_Activate();
     HSS_TinyCLI_WaitForUSBMSCDDone();
-}
-#endif
-
-#if !IS_ENABLED(CONFIG_SERVICE_TINYCLI_REGISTER)
-static bool tinyCLI_Getline_(char **pBuffer, size_t *pBufLen);
-static bool tinyCLI_Getline_(char **pBuffer, size_t *pBufLen)
-{
-    bool result = false;
-    ssize_t status = 0;
-
-    status = uart_getline(pBuffer, pBufLen);
-
-    if (status < 0) {
-        mHSS_DEBUG_PRINTF(LOG_NORMAL, "Problem reading input\n");
-    } else {
-        result = true;
-    }
-
-    return result;
 }
 #endif
 
@@ -979,18 +1006,19 @@ static bool dispatch_command_(struct tinycli_cmd const * const pCmds, size_t arr
 
         if (matchFoundFlag) {
             if (level == 0u) { // toplevel
-                if (toplevelCmdsSafeAfterBootFlags[cmdIndex].warnIfPostInit && postInit) {
+                if (toplevelCmdsSafeAfterBootFlags[cmdIndex].warnIfPostInit && HSS_Trigger_IsNotified(EVENT_POST_BOOT)) {
                     mHSS_DEBUG_PRINTF(LOG_WARN,
                         "Command %s may cause problems post boot.\n"
                         "Please type it again if you definitely want to execute it"
                         "\n\n", pCmds[cmdIndex].name);
                     matchFoundFlag = false;
+                    toplevelCmdsSafeAfterBootFlags[cmdIndex].warnIfPostInit = false; // disarming warning
                 } else {
                     tokenId = pCmds[cmdIndex].tokenId;
                 }
             }
 
-            if (matchFoundFlag && (pCmds[cmdIndex].handler)) {
+            if (pCmds[cmdIndex].handler) {
                 pCmds[cmdIndex].handler();
                 handled = true;
             }
@@ -998,12 +1026,6 @@ static bool dispatch_command_(struct tinycli_cmd const * const pCmds, size_t arr
     }
 
     return handled;
-}
-
-bool HSS_TinyCLI_IndicatePostInit(void)
-{
-    postInit = true;
-    return postInit;
 }
 
 bool HSS_TinyCLI_Parser(void)
@@ -1023,24 +1045,10 @@ bool HSS_TinyCLI_Parser(void)
         HSSTicks_t readlineIdleTime = HSS_GetTime();
 #endif
 
-        while (!quitFlag) {
-#if !IS_ENABLED(CONFIG_SERVICE_TINYCLI_REGISTER)
-            static char *pBuffer = NULL;
-            static size_t bufLen = 0u;
-
-            mHSS_FANCY_PUTS(LOG_NORMAL, ">> ");
-            bool result = tinyCLI_Getline_(&pBuffer, &bufLen);
-
-            if (result && (pBuffer != NULL)) {
-                if (HSS_TinyCLI_ParseIntoTokens(pBuffer)) {
-                   HSS_TinyCLI_Execute();
-                }
-            }
-#else
+        {
             RunStateMachine(&tinycli_service);
-#  if IS_ENABLED(CONFIG_SERVICE_USBDMSC) && (IS_ENABLED(CONFIG_SERVICE_MMC) || IS_ENABLED(CONFIG_SERVICE_QSPI))
+#if IS_ENABLED(CONFIG_SERVICE_USBDMSC) && (IS_ENABLED(CONFIG_SERVICE_MMC) || IS_ENABLED(CONFIG_SERVICE_QSPI))
             RunStateMachine(&usbdmsc_service);
-#  endif
 #endif
 
 #if IS_ENABLED(CONFIG_SERVICE_TINYCLI_ENABLE_PREBOOT_TIMEOUT)
@@ -1071,5 +1079,38 @@ void HSS_TinyCLI_RunMonitors(void)
             monitors[0].time = HSS_GetTime();
        }
     }
+}
+#endif
+
+#if IS_ENABLED(CONFIG_SERVICE_BEU)
+static void tinyCLI_ECC_(void)
+{
+    // addresses of L2 cache controller
+    #define CACHE_CONTROLLER_BASE_ADDR 0x2010000
+    #define CACHE_CONTROLLER_ECCInjectError_OFFSET 0x40
+    #define CACHE_CONTROLLER_ECCDirFixCount_OFFSET 0x108
+    #define CACHE_CONTROLLER_ECCDirFailCount_OFFSET 0x128
+    #define CACHE_CONTROLLER_ECCDataFixCount_OFFSET 0x148
+    #define CACHE_CONTROLLER_ECCDataFailCount_OFFSET 0x168
+
+    uint32_t data = 0;
+
+    HSS_BEU_DumpStats();
+
+    // directory correctable errors
+    data = mHSS_ReadRegU32(CACHE_CONTROLLER, ECCDirFixCount);
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "% 45s:  %" PRIu64 "\n", "L2 ECCDirFixCount", data);
+
+    // directory uncorrectable errors
+    data = mHSS_ReadRegU32(CACHE_CONTROLLER, ECCDirFailCount);
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "% 45s:  %" PRIu64 "\n", "L2 ECCDirFailCuont", data);
+
+    // data correctable errors
+    data = mHSS_ReadRegU32(CACHE_CONTROLLER, ECCDataFixCount);
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "% 45s:  %" PRIu64 "\n", "L2 ECCDataFixCount", data);
+
+    // data uncorrectable errors
+    data = mHSS_ReadRegU32(CACHE_CONTROLLER, ECCDataFailCount);
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "% 45s:  %" PRIu64 "\n", "L2 ECCDataFailCount", data);
 }
 #endif

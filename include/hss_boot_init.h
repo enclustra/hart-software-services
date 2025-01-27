@@ -33,6 +33,7 @@
 extern "C" {
 #endif
 
+void HSS_BootHarts(void);
 bool HSS_BootInit(void);
 
 void HSS_BootSelectQSPI(void);

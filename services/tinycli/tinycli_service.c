@@ -17,6 +17,9 @@
 #include "hss_state_machine.h"
 #include "hss_debug.h"
 #include "hss_clock.h"
+#include "hss_boot_init.h"
+#include "hss_progress.h"
+#include "hss_trigger.h"
 
 #include <string.h> //memset
 #include <assert.h>
@@ -28,8 +31,11 @@
 #include "usbdmsc_service.h"
 
 #include "drivers/mss/mss_mmuart/mss_uart.h"
+#include "ddr_service.h"
 
 static void tinycli_init_handler(struct StateMachine * const pMyMachine);
+static void tinycli_preboot_handler(struct StateMachine * const pMyMachine);
+static void tinycli_doboot_handler(struct StateMachine * const pMyMachine);
 static void tinycli_readline_onEntry(struct StateMachine * const pMyMachine);
 static void tinycli_readline_handler(struct StateMachine * const pMyMachine);
 static void tinycli_readline_onExit(struct StateMachine * const pMyMachine);
@@ -43,6 +49,8 @@ static void tinycli_uart_surrender_handler(struct StateMachine * const pMyMachin
  */
 enum UartStatesEnum {
     TINYCLI_INITIALIZATION,
+    TINYCLI_PREBOOT,
+    TINYCLI_DOBOOT,
     TINYCLI_READLINE,
     TINYCLI_PARSELINE,
     TINYCLI_USBDMSC,
@@ -56,6 +64,8 @@ enum UartStatesEnum {
  */
 static const struct StateDesc tinycli_state_descs[] = {
     { (const stateType_t)TINYCLI_INITIALIZATION, (const char *)"init",           NULL,                      NULL,                     &tinycli_init_handler },
+    { (const stateType_t)TINYCLI_PREBOOT,        (const char *)"preboot",        NULL,                      NULL,                     &tinycli_preboot_handler },
+    { (const stateType_t)TINYCLI_DOBOOT,         (const char *)"doboot",         NULL,                      NULL,                     &tinycli_doboot_handler },
     { (const stateType_t)TINYCLI_READLINE,       (const char *)"readline",       &tinycli_readline_onEntry, &tinycli_readline_onExit, &tinycli_readline_handler },
     { (const stateType_t)TINYCLI_PARSELINE,      (const char *)"parseline",      NULL,                      NULL,                     &tinycli_parseline_handler },
     { (const stateType_t)TINYCLI_USBDMSC,        (const char *)"usbdmsc",        NULL,                      NULL,                     &tinycli_usbdmsc_handler },
@@ -86,7 +96,19 @@ struct StateMachine tinycli_service = {
 
 static void tinycli_init_handler(struct StateMachine * const pMyMachine)
 {
-    pMyMachine->state = TINYCLI_READLINE;
+    if (HSS_Trigger_IsNotified(EVENT_DDR_TRAINED) && HSS_Trigger_IsNotified(EVENT_STARTUP_COMPLETE)) {
+#if IS_ENABLED(CONFIG_SERVICE_USBDMSC)
+        if (!HSS_Trigger_IsNotified(EVENT_USBDMSC_REQUESTED) && !USBDMSC_IsActive()) {
+#else
+        {
+#endif
+#if IS_ENABLED(CONFIG_SERVICE_BOOT)
+            pMyMachine->state = TINYCLI_PREBOOT;
+#else
+            pMyMachine->state = TINYCLI_READLINE;
+#endif
+        }
+    }
 }
 
 /////////////////
@@ -99,10 +121,59 @@ ssize_t readStringLen = 0;
 /////////////////
 
 const char* lineHeader = ">> ";
+#if IS_ENABLED(CONFIG_SERVICE_TINYCLI_ENABLE_PREBOOT_TIMEOUT)
+static HSSTicks_t readlineIdleTime = 0u;
+#endif
+
+static void tinycli_preboot_handler(struct StateMachine * const pMyMachine)
+{
+   bool keyPressedFlag = false;
+   uint8_t rcv_buf;
+
+   keyPressedFlag = HSS_ShowTimeout("Press a key to enter CLI, ESC to skip\n",
+       CONFIG_SERVICE_TINYCLI_TIMEOUT, &rcv_buf);
+
+    pMyMachine->state = TINYCLI_READLINE;
+
+    if (!keyPressedFlag) {
+        mHSS_FANCY_PUTS(LOG_NORMAL, "CLI boot interrupt timeout\n");
+        pMyMachine->state = TINYCLI_DOBOOT;
+    } else {
+        mHSS_FANCY_PUTS(LOG_NORMAL, "Type HELP for list of commands\n");
+#if IS_ENABLED(CONFIG_SERVICE_TINYCLI_ENABLE_PREBOOT_TIMEOUT)
+        readlineIdleTime = HSS_GetTime();
+#endif
+    }
+}
+
+static void tinycli_doboot_handler(struct StateMachine * const pMyMachine)
+{
+    (void)pMyMachine;
+
+#if IS_ENABLED(CONFIG_SERVICE_BOOT)
+    if (!HSS_DDR_IsAddrInDDR(CONFIG_SERVICE_BOOT_DDR_TARGET_ADDR) || HSS_Trigger_IsNotified(EVENT_DDR_TRAINED)) {
+        if (HSS_BootInit()) { HSS_BootHarts(); } // attempt boot
+        pMyMachine->state = TINYCLI_READLINE;
+    }
+#else
+    pMyMachine->state = TINYCLI_READLINE;
+#endif
+}
 
 static void tinycli_readline_onEntry(struct StateMachine * const pMyMachine)
 {
     (void)pMyMachine;
+
+#if IS_ENABLED(CONFIG_SERVICE_TINYCLI_ENABLE_PREBOOT_TIMEOUT)
+#  define PREBOOT_IDLE_TIMEOUT (ONE_SEC * CONFIG_SERVICE_TINYCLI_PREBOOT_TIMEOUT)
+    if (!HSS_Trigger_IsNotified(EVENT_POST_BOOT)) {
+        if (HSS_Timer_IsElapsed(readlineIdleTime, PREBOOT_IDLE_TIMEOUT)) {
+            mHSS_DEBUG_PRINTF(LOG_ERROR, "***** Timeout on Pre-Boot TinyCLI *****\n");
+            HSS_SpinDelay_Secs(5u);
+            tinyCLI_Reset_();
+        }
+    }
+#endif
 
     //myBuffer[0] = '\0';
     readStringLen = 0u;

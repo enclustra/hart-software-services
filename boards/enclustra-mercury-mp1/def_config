@@ -7,6 +7,8 @@
 # Enclustra MP1 Design Configuration Options
 #
 CONFIG_SOC_FPGA_DESIGN_XML="boards/enclustra-mercury-mp1/soc_fpga_design/xml/me-mp1-250-si-d3en.xml"
+CONFIG_UART_SELECT_MULTIPLEXER_PRESENT=y
+CONFIG_UART_SELECT_MULTIPLEXER_ADRESS=0x41000000
 # end of Enclustra MP1 Design Configuration Options
 # end of Board/Design Configuration Options
 

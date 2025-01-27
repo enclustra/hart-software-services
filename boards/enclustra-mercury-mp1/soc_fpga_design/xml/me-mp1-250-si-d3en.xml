@@ -4,7 +4,7 @@
       <design_name>MPFS250TS</design_name>
       <mpfs_part_no>MPFS250TS</mpfs_part_no>
       <mpfs_package>FCG1152</mpfs_package>
-      <creation_date_time>01-27-2025_09:57:00</creation_date_time>
+      <creation_date_time>01-27-2025_16:48:07</creation_date_time>
       <xml_format_version>0.6.8</xml_format_version>
     </design_information>
     <mss_memory_map>
@@ -1930,7 +1930,7 @@
             <field Type="RW" name="REFCLK_DDR3L_1333_NUM_OFFSETS" offset="0" width="32">3</field>
           </register>
           <register address="24" description="Number of offsets used when training" name="REFCLK_DDR4_1600_NUM_OFFSETS">
-            <field Type="RW" name="REFCLK_DDR4_1600_NUM_OFFSETS" offset="0" width="32">4</field>
+            <field Type="RW" name="REFCLK_DDR4_1600_NUM_OFFSETS" offset="0" width="32">0x4</field>
           </register>
           <register address="28" description="Number of offsets used when training" name="REFCLK_LPDDR3_1600_NUM_OFFSETS">
             <field Type="RW" name="REFCLK_LPDDR3_1600_NUM_OFFSETS" offset="0" width="32">3</field>
@@ -1945,7 +1945,7 @@
             <field Type="RW" name="REFCLK_DDR3L_1067_NUM_OFFSETS" offset="0" width="32">1</field>
           </register>
           <register address="44" description="Number of offsets used when training" name="REFCLK_DDR4_1333_NUM_OFFSETS">
-            <field Type="RW" name="REFCLK_DDR4_1333_NUM_OFFSETS" offset="0" width="32">4</field>
+            <field Type="RW" name="REFCLK_DDR4_1333_NUM_OFFSETS" offset="0" width="32">0x4</field>
           </register>
           <register address="48" description="Number of offsets used when training" name="REFCLK_LPDDR3_1333_NUM_OFFSETS">
             <field Type="RW" name="REFCLK_LPDDR3_1333_NUM_OFFSETS" offset="0" width="32">2</field>
@@ -1978,16 +1978,16 @@
             <field Type="RW" name="REFCLK_DDR3L_1333_OFFSET_3" offset="0" width="32">0</field>
           </register>
           <register address="88" description="offset for iteration  0" name="REFCLK_DDR4_1600_OFFSET_0">
-            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_0" offset="0" width="32">7</field>
+            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_0" offset="0" width="32">0x5</field>
           </register>
           <register address="92" description="offset for  iteration  1" name="REFCLK_DDR4_1600_OFFSET_1">
-            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_1" offset="0" width="32">6</field>
+            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_1" offset="0" width="32">0x4</field>
           </register>
           <register address="96" description="offset for  iteration  2" name="REFCLK_DDR4_1600_OFFSET_2">
-            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_2" offset="0" width="32">5</field>
+            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_2" offset="0" width="32">0x3</field>
           </register>
           <register address="100" description="offset for  iteration  3" name="REFCLK_DDR4_1600_OFFSET_3">
-            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_3" offset="0" width="32">0</field>
+            <field Type="RW" name="REFCLK_DDR4_1600_OFFSET_3" offset="0" width="32">0x2</field>
           </register>
           <register address="104" description="offset for iteration  0" name="REFCLK_LPDDR3_1600_OFFSET_0">
             <field Type="RW" name="REFCLK_LPDDR3_1600_OFFSET_0" offset="0" width="32">7</field>
@@ -2038,16 +2038,16 @@
             <field Type="RW" name="REFCLK_DDR3L_1067_OFFSET_3" offset="0" width="32">2</field>
           </register>
           <register address="168" description="offset for iteration  0" name="REFCLK_DDR4_1333_OFFSET_0">
-            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_0" offset="0" width="32">0</field>
+            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_0" offset="0" width="32">0x5</field>
           </register>
           <register address="172" description="offset for  iteration  1" name="REFCLK_DDR4_1333_OFFSET_1">
-            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_1" offset="0" width="32">1</field>
+            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_1" offset="0" width="32">0x4</field>
           </register>
           <register address="176" description="offset for  iteration  2" name="REFCLK_DDR4_1333_OFFSET_2">
-            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_2" offset="0" width="32">6</field>
+            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_2" offset="0" width="32">0x3</field>
           </register>
           <register address="180" description="offset for  iteration  3" name="REFCLK_DDR4_1333_OFFSET_3">
-            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_3" offset="0" width="32">7</field>
+            <field Type="RW" name="REFCLK_DDR4_1333_OFFSET_3" offset="0" width="32">0x2</field>
           </register>
           <register address="184" description="offset for iteration  0" name="REFCLK_LPDDR3_1333_OFFSET_0">
             <field Type="RW" name="REFCLK_LPDDR3_1333_OFFSET_0" offset="0" width="32">0</field>

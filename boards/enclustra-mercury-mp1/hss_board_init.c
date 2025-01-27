@@ -47,7 +47,6 @@ const struct InitFunction /*@null@*/ boardInitFunctions[] = {
     { "HSS_Setup_PLIC",         HSS_Setup_PLIC,         false, false },
     { "HSS_Setup_BusErrorUnit", HSS_Setup_BusErrorUnit, false, false },
     { "HSS_Setup_MPU",          HSS_Setup_MPU,          false, false },
-    { "HSS_DDRInit",            HSS_DDRInit,            false, false },
 #ifdef CONFIG_USE_PCIE
     { "HSS_PCIeInit",           HSS_PCIeInit,           false, false },
 #endif
@@ -75,7 +74,6 @@ void ENC_WaitForMdioIdle(MAC_TypeDef *mac_base);
 void ENC_WritePhyReg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval);
 uint16_t ENC_ReadPhyReg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr);
 void ENC_SelectUart(uint32_t uartNr);
-void ENC_InitializeMemory(uint64_t *addr, uint32_t size);
 void ENC_InitEthPhy(void);
 void ENC_ReleaseReset(void);
 bool ENC_FabricUartMultiplexerPresent(void);
@@ -174,12 +172,6 @@ bool HSS_BoardInit(void)
     return true;
 }
 
-void ENC_InitializeMemory(uint64_t *addr, uint32_t size)
-{
-    mHSS_FANCY_PRINTF(LOG_NORMAL, "Initializing memory offset 0x%x%08x size 0x%x\n", (uint64_t)addr >> 32, addr, size);
-    memset(addr, 0, size);
-}
-
 void ENC_ReleaseReset(void)
 {
     MSS_GPIO_init(GPIO0_LO);
@@ -238,17 +230,6 @@ bool HSS_BoardLateInit(void)
     HSS_SpinDelay_MilliSecs(250);
 
     ENC_InitEthPhy();
-
-    // With ECC enabled, the DDR memory needs to be initialized to prevent from
-    // bus errors caused by reading uninitialized memory
-#if LIBERO_SETTING_CFG_ECC_CORRECTION_EN == 1
-    if (HSS_DDR_GetSize()) {
-        ENC_InitializeMemory((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize());
-    }
-    if (HSS_DDRHi_GetSize()) {
-        ENC_InitializeMemory((uint64_t *)HSS_DDRHi_GetStart(), HSS_DDRHi_GetSize());
-    }
-#endif
 
     return true;
 }

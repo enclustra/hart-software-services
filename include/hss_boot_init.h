@@ -33,6 +33,7 @@
 extern "C" {
 #endif
 
+void HSS_HandoffBeforeBoot(void);
 void HSS_BootHarts(void);
 bool HSS_BootInit(void);
 

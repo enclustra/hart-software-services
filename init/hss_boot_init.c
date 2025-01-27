@@ -178,8 +178,14 @@ void HSS_BootListStorageProviders(void)
     }
 }
 
+__attribute__((weak)) void HSS_HandoffBeforeBoot(void)
+{
+}
+
 void HSS_BootHarts(void)
 {
+    HSS_HandoffBeforeBoot();
+
 #if IS_ENABLED(CONFIG_SERVICE_BOOT)
         union HSSHartBitmask restartHartBitmask = { .uint = 0u };
 

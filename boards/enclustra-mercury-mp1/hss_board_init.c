@@ -15,7 +15,6 @@
 #include "config.h"
 #include "hss_types.h"
 #include <assert.h>
-#include <string.h>
 
 #include "hss_debug.h"
 #include "mss_ethernet_registers.h"
@@ -27,6 +26,8 @@
 #include "hss_registry.h"
 #include "ddr_service.h"
 #include "ddr/hw_ddrc.h"
+#include <string.h>
+#include "mpfs_hal_config/mss_sw_config.h"
 
 /******************************************************************************************************/
 /*!
@@ -50,6 +51,9 @@ const struct InitFunction /*@null@*/ boardInitFunctions[] = {
 #ifdef CONFIG_USE_PCIE
     { "HSS_PCIeInit",           HSS_PCIeInit,           false, false },
 #endif
+#ifdef CONFIG_USE_TAMPER
+    { "HSS_TamperInit",         HSS_TamperInit,         false, false },
+#endif
     { "HSS_USBInit",            HSS_USBInit,            false, false },
 };
 
@@ -64,23 +68,30 @@ const struct InitFunction /*@null@*/ boardInitFunctions[] = {
 /****************************************************************************/
 
 #define MSS_MAC1_BASE (0x20112000U)
-#define UART_SEL_GPIO_BASE (0x41000000U)
 
-void ENC_init_mdio(MAC_TypeDef *mac_base);
-void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base);
-void ENC_write_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval);
-uint16_t ENC_read_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr);
-void ENC_select_uart(uint32_t uartNr);
+void HSS_HandoffBeforeBoot(void);
+void ENC_InitMdio(MAC_TypeDef *mac_base);
+void ENC_WaitForMdioIdle(MAC_TypeDef *mac_base);
+void ENC_WritePhyReg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval);
+uint16_t ENC_ReadPhyReg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr);
+void ENC_SelectUart(uint32_t uartNr);
 void ENC_InitializeMemory(uint64_t *addr, uint32_t size);
 void ENC_InitEthPhy(void);
 void ENC_ReleaseReset(void);
+bool ENC_FabricUartMultiplexerPresent(void);
+uint32_t* ENC_FabricUartMultiplexerAddress(void);
 
-void ENC_init_mdio(MAC_TypeDef *mac_base)
+void HSS_HandoffBeforeBoot(void)
+{
+    ENC_SelectUart(1);
+}
+
+void ENC_InitMdio(MAC_TypeDef *mac_base)
 {
     mac_base->NETWORK_CONTROL = GEM_MAN_PORT_EN | GEM_CLEAR_ALL_STATS_REGS;
 }
 
-void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base)
+void ENC_WaitForMdioIdle(MAC_TypeDef *mac_base)
 {
     do
     {
@@ -89,9 +100,9 @@ void ENC_wait_for_mdio_idle(MAC_TypeDef *mac_base)
     } while(0U == (mac_base->NETWORK_STATUS & GEM_MAN_DONE));
 }
 
-void ENC_write_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval)
+void ENC_WritePhyReg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, uint16_t regval)
 {
-    ENC_wait_for_mdio_idle(mac_base);
+    ENC_WaitForMdioIdle(mac_base);
 
     volatile uint32_t phy_op;
     phy_op = GEM_WRITE1 | (GEM_PHY_OP_CL22_WRITE << GEM_OPERATION_SHIFT) | (((uint32_t)(2UL)) << GEM_WRITE10_SHIFT) | (uint32_t)regval;
@@ -101,9 +112,9 @@ void ENC_write_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr, 
     mac_base->PHY_MANAGEMENT = phy_op;
 }
 
-uint16_t ENC_read_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr)
+uint16_t ENC_ReadPhyReg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regaddr)
 {
-    ENC_wait_for_mdio_idle(mac_base);
+    ENC_WaitForMdioIdle(mac_base);
 
     volatile uint32_t phy_op;
     phy_op = GEM_WRITE1 | (GEM_PHY_OP_CL22_READ << GEM_OPERATION_SHIFT) | (((uint32_t)(2UL)) << GEM_WRITE10_SHIFT);
@@ -111,15 +122,30 @@ uint16_t ENC_read_phy_reg(MAC_TypeDef *mac_base, uint8_t phyaddr, uint8_t regadd
     phy_op |= ((uint32_t)regaddr << GEM_REGISTER_ADDRESS_SHIFT) & GEM_REGISTER_ADDRESS;
 
     mac_base->PHY_MANAGEMENT = phy_op;
-    ENC_wait_for_mdio_idle(mac_base);
+    ENC_WaitForMdioIdle(mac_base);
 
     phy_op = mac_base->PHY_MANAGEMENT;
 
     return((uint16_t)phy_op);
 }
 
-void ENC_select_uart(uint32_t uartNr)
+bool ENC_FabricUartMultiplexerPresent(void)
 {
+    return UART_SELECT_MULTIPLEXER_PRESENT;
+}
+
+uint32_t* ENC_FabricUartMultiplexerAddress(void)
+{
+    return (uint32_t *)UART_SELECT_MULTIPLEXER_ADRESS;
+}
+
+void ENC_SelectUart(uint32_t uartNr)
+{
+    if (ENC_FabricUartMultiplexerPresent() == false)
+    {
+        return;
+    }
+
     typedef struct
     {
         volatile uint32_t GPIO_CFG[32];
@@ -135,14 +161,14 @@ void ENC_select_uart(uint32_t uartNr)
     }
 
     mHSS_DEBUG_PRINTF(LOG_NORMAL, "Switching to UART %i ...\n", uartNr);
-    FPGA_GPIO_TypeDef *gpio_base = (FPGA_GPIO_TypeDef*)UART_SEL_GPIO_BASE;
+    FPGA_GPIO_TypeDef *gpio_base = (FPGA_GPIO_TypeDef*)ENC_FabricUartMultiplexerAddress();
     gpio_base->GPIO_CFG[0] = 0x5; // Configure to output
     gpio_base->GPIO_OUT = uartNr; // Set output to 1 to select uart 1
 }
 
 bool HSS_BoardInit(void)
 {
-    ENC_select_uart(0);
+    ENC_SelectUart(0);
     RunInitFunctions(ARRAY_SIZE(boardInitFunctions), boardInitFunctions);
 
     return true;
@@ -176,13 +202,13 @@ void ENC_InitEthPhy(void)
 
     int numberOfDetectedEthPhy = 0;
     MAC_TypeDef *mac_base = (MAC_TypeDef*)MSS_MAC1_BASE;
-    ENC_init_mdio(mac_base);
+    ENC_InitMdio(mac_base);
 
     for (uint8_t phyAddr = 0; phyAddr < 32; phyAddr ++)
     {
         // Read ID of PHY and check if it matches DP83867
-        uint16_t idMsb = ENC_read_phy_reg(mac_base, phyAddr, MDIO_PHY_ID_MSB);
-        uint16_t idLsb = ENC_read_phy_reg(mac_base, phyAddr, MDIO_PHY_ID_LSB);
+        uint16_t idMsb = ENC_ReadPhyReg(mac_base, phyAddr, MDIO_PHY_ID_MSB);
+        uint16_t idLsb = ENC_ReadPhyReg(mac_base, phyAddr, MDIO_PHY_ID_LSB);
         uint32_t id = ((uint32_t)idMsb << 16) | idLsb;
         if (id == DP83867_ID)
         {
@@ -190,11 +216,11 @@ void ENC_InitEthPhy(void)
             numberOfDetectedEthPhy ++;
 
             // Configure pin INT#/PWDN# for interrupt functionality
-            ENC_write_phy_reg(mac_base, phyAddr, MDIO_CONFIG3, CONFIG3_IRQ_EN_MASK);
+            ENC_WritePhyReg(mac_base, phyAddr, MDIO_CONFIG3, CONFIG3_IRQ_EN_MASK);
 
             // Clear power down flag
-            uint16_t reg = ENC_read_phy_reg(mac_base, phyAddr, MDIO_CONTROL);
-            ENC_write_phy_reg(mac_base, phyAddr, MDIO_CONTROL, reg & ~CONTROL_POWER_DOWN_MASK);
+            uint16_t reg = ENC_ReadPhyReg(mac_base, phyAddr, MDIO_CONTROL);
+            ENC_WritePhyReg(mac_base, phyAddr, MDIO_CONTROL, reg & ~CONTROL_POWER_DOWN_MASK);
         }
     }
 
@@ -223,13 +249,6 @@ bool HSS_BoardLateInit(void)
         ENC_InitializeMemory((uint64_t *)HSS_DDRHi_GetStart(), HSS_DDRHi_GetSize());
     }
 #endif
-
-    return true;
-}
-
-bool HSS_BoardHandoff(void)
-{
-    ENC_select_uart(1);
 
     return true;
 }

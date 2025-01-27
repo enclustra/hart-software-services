@@ -2,8 +2,22 @@ menu "Enclustra MP1 Design Configuration Options"
 
 config SOC_FPGA_DESIGN_XML
 	string "Enter path to Libero XML file"
-	default "boards/$(BOARD)/soc_fpga_design/xml/me-mp1-250-ees-d3e.xml"
+	default "boards/$(BOARD)/soc_fpga_design/xml/me-mp1-250-si-d3en.xml"
 	help
 		This option specifies the design XML file to use.
-endmenu
 
+config UART_SELECT_MULTIPLEXER_PRESENT
+	bool "UART multiplexer register present"
+	default n
+	help
+		This feature enables the use of a GPIO controller in the FPGA fabric for UART multiplexer selection.
+
+config UART_SELECT_MULTIPLEXER_ADRESS
+	hex "Memory mapped address of UART multiplexer register"
+	default 0x40000000
+	depends on UART_SELECT_MULTIPLEXER_PRESENT
+	help
+		This value represents the memory mapped address of a GPIO controller in the FPGA fabric.
+		This GPIO controller is used to select between UART of the E51 or UART of the first U54 core.
+
+endmenu

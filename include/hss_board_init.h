@@ -35,7 +35,6 @@ extern "C" {
 
 bool HSS_BoardInit(void);
 bool HSS_BoardLateInit(void);
-bool HSS_BoardHandoff(void);
 
 #ifdef __cplusplus
 }

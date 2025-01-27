@@ -4456,7 +4456,7 @@ __attribute__((weak)) void clear_bootup_cache_ways(void)
     volatile PATTERN_TEST_PARAMS pattern_test;
 
     /* clear using pdma routine, uses the 4 channels */
-    pattern_test.base = LIBERO_SETTING_DDR_32_CACHE;
+    pattern_test.base = LIBERO_SETTING_DDR_64_CACHE;
     pattern_test.size = TWO_MBYTES*4;
     pattern_test.pattern_type = DDR_INIT_FILL;
     pattern_test.pattern_offset = 0U;
@@ -4464,8 +4464,8 @@ __attribute__((weak)) void clear_bootup_cache_ways(void)
     load_ddr_pattern(&pattern_test);
 
     /* clear using my d-cache ways */
-    fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_32_DDR,
-                               (void *)(BASE_ADDRESS_CACHED_32_DDR +
+    fill_cache_new_seg_address((void *)BASE_ADDRESS_CACHED_64_DDR,
+                               (void *)(BASE_ADDRESS_CACHED_64_DDR +
                                         TWO_MBYTES));
 }
 

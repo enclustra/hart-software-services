@@ -13,12 +13,12 @@ See [License](LICENSE.md)
 
 ## Changelog
 
-| Date       | Version  | Comment               |
-|------------|----------|-----------------------|
-| 26.07.2022 | 2021.11  | First version         |
-| 10.11.2022 | 2022.09  | Memory layout changed |
-| 03.04.2023 | 2023.02  | Update to 2023.02.1   |
-| 21.01.2025 | 2024.09  | Update to 2024.09 / Support for ME-MP1-250-EES-D3E and ME-MP1-460-1SI-D4E removed |
+| Date       | Version  | Comment                 |
+|------------|----------|-------------------------|
+| 26.07.2022 | 2021.11  | - First version         |
+| 10.11.2022 | 2022.09  | - Memory layout changed |
+| 03.04.2023 | 2023.02  | - Update to 2023.02.1   |
+| 18.02.2025 | 2024.09  | - Update to 2024.09 / - Support for ME-MP1-250-EES-D3E and ME-MP1-460-1SI-D4E removed |
 
 ## Modifications for Mercury+ MP1 product series
 
@@ -33,10 +33,6 @@ Following product models are supported:
 
 At power up, the Ethernet PHYs located on the Mercury+ MP1 module are in power-down mode. The HSS reconfigures the INT#/PWDN# pin of the DP83867IS Ethernet PHY for interrupt functionality and releases the PHYs from power-down mode. 
 
-### DDR memory initialisation
-
-The provided MSS configuration enables ECC functionality for the MSS DDR memory. The entire DDR memory is initialized with zeroes to prevent from ECC errors. DDR memory initialisation increases boot time for about 25 seconds.
-
 ### Peripheral reset
 
 Pin 12 of MSS bank 4 controls the reset signal of following peripherals:
@@ -49,6 +45,12 @@ The reset is deasserted at boot time to enable the above mentioned peripherals.
 ### Control of UART multiplexer
 
 The Enclustra Mercury+ module pinout defines only one UART interface. The HSS software running on hart 0 uses UART 0 and Linux or baremetal software running on hart1-4 might use one of the other 4 UART peripherals. To allow access for UART 1, the reference design contains a UART multiplexer in the FPGA fabric to switch between UART 0 and UART 1. Before the HSS software boots the payload, the UART multiplexer is configured to route UART 1 to the module pins.
+The address of the GPIO controller in the FPGA fabric which controls this multiplexer is set by **CONFIG_UART_SELECT_MULTIPLEXER_ADRESS=0x41000000**.
+
+### Control of SD/eMMC multiplexer
+
+The Enclustra Mercury+ MP1 module is equipped with an eMMC memory which is connected via a multiplexer to the MMC controller of the SoC device. This multiplexer can either be configured to route the SD card slot on the base board or the eMMC to the MMC controller.
+The address of the register in the FPGA fabric which controls this multiplexer is set by **CONFIG_SERVICE_MMC_FABRIC_SD_EMMC_DEMUX_SELECT_ADDRESS=0x40000000**.
 
 ## MSS configuration
 
@@ -121,3 +123,21 @@ The generated file **Default/bootmode1/hss-envm-wrapper-bm1-p0.hex** can be adde
 4. Click on **Apply** button to save the changes
 5. Generate the Bitstream
 6. Configure the hardware with the new bitstream
+
+## Known issues
+
+### Watchdog triggers while executing memory test
+
+When the memory test is executed by typing "MEMTEST" in the HSS CLI, the system reboots after about 30s because the watchdog is triggering. As workaround, the watchdog can be disabled by changing
+
+```
+CONFIG_SERVICE_WDOG_ENABLE_E51=y
+```
+
+to
+
+```
+# CONFIG_SERVICE_WDOG_ENABLE_E51 is not set
+```
+
+in file boards/enclustra-mercury-mp1/def_config.

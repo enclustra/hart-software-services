@@ -259,10 +259,18 @@ bool HSS_MemTestDDRFull(void)
 {
     bool result = HSS_MemTestDDRFast();
 
-    if (result) {
-        if (HSS_MemTestDevice((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize()) != NULL) {
-            //mHSS_FANCY_PRINTF(LOG_ERROR, "FAILED!\n");
-            result = false;
+    if (HSS_DDR_GetSize()) {
+        if (result) {
+            if (HSS_MemTestDevice((uint64_t *)HSS_DDR_GetStart(), HSS_DDR_GetSize()) != NULL) {
+                result = false;
+            }
+        }
+    }
+    if (HSS_DDRHi_GetSize()) {
+        if (result) {
+            if (HSS_MemTestDevice((uint64_t *)HSS_DDRHi_GetStart(), HSS_DDRHi_GetSize()) != NULL) {
+                result = false;
+            }
         }
     }
 

@@ -1,9 +1,9 @@
 # Polarfire SoC Hart Software Services
 
-This repository is a fork of the [Polarfire SoC HSS](https://github.com/polarfire-soc/hart-software-services) repository of Microchip and adds support for Enclustra Mercury+ MP1 product series.
+This repository is a fork of the [Polarfire SoC HSS](https://github.com/polarfire-soc/hart-software-services) repository of Microchip and adds support for the Enclustra Mercury+ MP1 product series.
 The original documentation of the HSS software can be found [here](https://github.com/polarfire-soc/hart-software-services/blob/master/README.md).
 
-## Maintainer 
+## Maintainer
 
 Enclustra GmbH [[support@enclustra.com](mailto:support@enclustra.com)]
 
@@ -15,10 +15,10 @@ See [License](LICENSE.md)
 
 | Date       | Version  | Comment                 |
 |------------|----------|-------------------------|
-| 26.07.2022 | 2021.11  | - First version         |
-| 10.11.2022 | 2022.09  | - Memory layout changed |
+| 26.02.2025 | 2024.09  | - Update to 2024.09 <br> - Support for ME-MP1-250-EES-D3E and ME-MP1-460-1SI-D4E removed |
 | 03.04.2023 | 2023.02  | - Update to 2023.02.1   |
-| 18.02.2025 | 2024.09  | - Update to 2024.09 / - Support for ME-MP1-250-EES-D3E and ME-MP1-460-1SI-D4E removed |
+| 10.11.2022 | 2022.09  | - Memory layout changed |
+| 26.07.2022 | 2021.11  | - First version         |
 
 ## Modifications for Mercury+ MP1 product series
 
@@ -115,7 +115,7 @@ make BOARD=enclustra-mercury-mp1
 
 ### Embed HSS binary into bitstream in Libero
 
-The generated file **Default/bootmode1/hss-envm-wrapper-bm1-p0.hex** can be added in Libero as boot mode 1 client to the eNVM memory before the bitstream is created.
+The generated file **hart-software-services/build/bootmode1/hss-envm-wrapper-bm1-p0.hex** can be added in Libero as boot mode 1 client to the eNVM memory before the bitstream is created.
 
 1. In **Design Flow** window, open **Configure Design Initialization Data and Memories**
 2. Select **eNVM** tab
@@ -140,4 +140,4 @@ to
 # CONFIG_SERVICE_WDOG_ENABLE_E51 is not set
 ```
 
-in file boards/enclustra-mercury-mp1/def_config.
+in file [boards/enclustra-mercury-mp1/def_config](boards/enclustra-mercury-mp1/def_config).
